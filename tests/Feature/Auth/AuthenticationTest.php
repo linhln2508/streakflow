@@ -21,20 +21,20 @@ class AuthenticationTest extends TestCase
     {
         $user = User::factory()->create();
 
-        $response = $this->post('/login', [
+        $response = $this->postJson('/web_api/auth/login', [
             'email' => $user->email,
             'password' => 'password',
         ]);
 
         $this->assertAuthenticated();
-        $response->assertRedirect(route('dashboard', absolute: false));
+        $response->assertOk()->assertJsonPath('success', true);
     }
 
     public function test_users_can_not_authenticate_with_invalid_password(): void
     {
         $user = User::factory()->create();
 
-        $this->post('/login', [
+        $this->postJson('/web_api/auth/login', [
             'email' => $user->email,
             'password' => 'wrong-password',
         ]);
@@ -46,9 +46,9 @@ class AuthenticationTest extends TestCase
     {
         $user = User::factory()->create();
 
-        $response = $this->actingAs($user)->post('/logout');
+        $response = $this->actingAs($user)->postJson('/web_api/auth/logout');
 
         $this->assertGuest();
-        $response->assertRedirect('/');
+        $response->assertOk()->assertJsonPath('success', true);
     }
 }

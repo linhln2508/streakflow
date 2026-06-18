@@ -23,14 +23,14 @@ class CloseDaySummaryAction
         $user = User::findOrFail($userId);
         $dateStr = $date->toDateString();
 
-        $existing = DailySummary::where('user_id', $userId)->where('date', $dateStr)->first();
+        $existing = DailySummary::where('user_id', $userId)->whereDate('date', $dateStr)->first();
         if ($existing) {
             return $existing;
         }
 
         return DB::transaction(function () use ($user, $date, $dateStr, $closedBy) {
             $instances = TaskInstance::where('user_id', $user->id)
-                ->where('scheduled_date', $dateStr)
+                ->whereDate('scheduled_date', $dateStr)
                 ->lockForUpdate()
                 ->get();
 

@@ -83,11 +83,17 @@ class ReportController extends Controller
             ->values()
             ->take(10);
 
+        $hpChartData = $summaries->values()->map(fn ($s) => [
+            'day' => $s->date->format('d/m'),
+            'hp_change' => $s->hp_change,
+        ]);
+
         return Inertia::render('Reports/Month', [
             'year' => $year,
             'month' => $month,
             'summaries' => $summaries,
             'topSkipped' => $skippedTasks,
+            'hpChartData' => $hpChartData,
         ]);
     }
 

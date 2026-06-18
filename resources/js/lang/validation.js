@@ -1,0 +1,28 @@
+export const validationMessages = {
+    vi: {
+        required: 'Vui lòng điền thông tin này',
+        string: 'Vui lòng nhập chữ',
+        max: 'Vui lòng không nhập quá {param} ký tự',
+        min: 'Vui lòng nhập ít nhất {param} ký tự',
+        email: 'Vui lòng nhập một địa chỉ email hợp lệ',
+        numeric: 'Vui lòng nhập một số',
+        integer: 'Vui lòng nhập một số nguyên',
+        url: 'Vui lòng nhập một URL hợp lệ',
+        date: 'Vui lòng nhập một ngày hợp lệ',
+        regex: 'Giá trị không khớp với định dạng yêu cầu',
+        formInvalid: 'Biểu mẫu không hợp lệ. Vui lòng kiểm tra lại thông tin.',
+    },
+    en: {
+        required: 'This field is required',
+        string: 'Please enter text only',
+        max: 'Must not exceed {param} characters',
+        min: 'Must be at least {param} characters',
+        email: 'Please enter a valid email address',
+        numeric: 'Please enter a number',
+        integer: 'Please enter an integer',
+        url: 'Please enter a valid URL',
+        date: 'Please enter a valid date',
+        regex: 'The value does not match the required format',
+        formInvalid: 'The form is invalid. Please check your input.',
+    },
+};

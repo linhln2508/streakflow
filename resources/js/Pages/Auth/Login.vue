@@ -1,99 +1,63 @@
 <script setup>
-import Checkbox from '@/Components/Checkbox.vue';
-import GuestLayout from '@/Layouts/GuestLayout.vue';
-import InputError from '@/Components/InputError.vue';
-import InputLabel from '@/Components/InputLabel.vue';
-import PrimaryButton from '@/Components/PrimaryButton.vue';
-import TextInput from '@/Components/TextInput.vue';
-import { Head, Link, useForm } from '@inertiajs/vue3';
+import { router } from '@inertiajs/vue3';
+import { reactive, ref } from 'vue';
+import { useApi, unwrapApiData } from '@/composables/useApi';
+import { useFormFields } from '@/composables/useFormFields';
 
 defineProps({
-    canResetPassword: {
-        type: Boolean,
-    },
-    status: {
-        type: String,
-    },
+    canResetPassword: { type: Boolean },
+    status: { type: String },
 });
 
-const form = useForm({
+const emailField = ref(null);
+const passwordField = ref(null);
+const processing = ref(false);
+const { validateAll } = useFormFields();
+
+const form = reactive({
     email: '',
     password: '',
     remember: false,
 });
 
-const submit = () => {
-    form.post(route('login'), {
-        onFinish: () => form.reset('password'),
-    });
+const submit = async () => {
+    if (!validateAll([emailField.value, passwordField.value]).isValid) {
+        return;
+    }
+
+    processing.value = true;
+
+    try {
+        const response = await useApi(route('web_api.auth.login')).post({ ...form });
+        const redirect = unwrapApiData(response)?.redirect ?? route('dashboard');
+        router.visit(redirect);
+    } finally {
+        processing.value = false;
+        form.password = '';
+    }
 };
 </script>
 
 <template>
     <GuestLayout>
-        <Head title="Log in" />
+        <Head title="Đăng nhập" />
 
-        <div v-if="status" class="mb-4 text-sm font-medium text-green-600">
-            {{ status }}
-        </div>
+        <div v-if="status" class="mb-4 text-sm font-medium text-green-600">{{ status }}</div>
 
-        <form @submit.prevent="submit">
-            <div>
-                <InputLabel for="email" value="Email" />
+        <form @submit.prevent="submit" class="space-y-4">
+            <Field ref="emailField" v-model="form.email" :field="{ label: 'Email', type: 'Email', validate: 'required|email' }" />
+            <Field ref="passwordField" v-model="form.password" :field="{ label: 'Mật khẩu', type: 'Password', validate: 'required' }" />
 
-                <TextInput
-                    id="email"
-                    type="email"
-                    class="mt-1 block w-full"
-                    v-model="form.email"
-                    required
-                    autofocus
-                    autocomplete="username"
-                />
+            <Field v-model="form.remember" :field="{ type: 'Checkbox', checkboxLabel: 'Ghi nhớ đăng nhập' }" />
 
-                <InputError class="mt-2" :message="form.errors.email" />
-            </div>
-
-            <div class="mt-4">
-                <InputLabel for="password" value="Password" />
-
-                <TextInput
-                    id="password"
-                    type="password"
-                    class="mt-1 block w-full"
-                    v-model="form.password"
-                    required
-                    autocomplete="current-password"
-                />
-
-                <InputError class="mt-2" :message="form.errors.password" />
-            </div>
-
-            <div class="mt-4 block">
-                <label class="flex items-center">
-                    <Checkbox name="remember" v-model:checked="form.remember" />
-                    <span class="ms-2 text-sm text-gray-600"
-                        >Remember me</span
-                    >
-                </label>
-            </div>
-
-            <div class="mt-4 flex items-center justify-end">
-                <Link
-                    v-if="canResetPassword"
-                    :href="route('password.request')"
-                    class="rounded-md text-sm text-gray-600 underline hover:text-gray-900 focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:ring-offset-2"
-                >
-                    Forgot your password?
+            <div class="flex items-center justify-end gap-3">
+                <Link v-if="canResetPassword" :href="route('password.request')" class="text-sm text-muted-foreground underline hover:text-foreground">
+                    Quên mật khẩu?
                 </Link>
-
-                <PrimaryButton
-                    class="ms-4"
-                    :class="{ 'opacity-25': form.processing }"
-                    :disabled="form.processing"
-                >
-                    Log in
-                </PrimaryButton>
+                <Button type="submit" :disabled="processing">
+                    <DynamicIcon name="LogIn" size="14" class="mr-1" />
+                    Đăng nhập
+                </Button>
             </div>
         </form>
     </GuestLayout>

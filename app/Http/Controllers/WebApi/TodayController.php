@@ -1,8 +1,10 @@
 <?php
 
-namespace App\Http\Controllers;
+namespace App\Http\Controllers\WebApi;
 
 use App\Actions\CloseDaySummaryAction;
+use App\Http\Controllers\Controller;
+use App\Http\Controllers\WebApi\Concerns\RespondsWithJsonApi;
 use App\Models\DailySummary;
 use App\Models\TaskInstance;
 use Carbon\Carbon;
@@ -10,6 +12,8 @@ use Illuminate\Http\Request;
 
 class TodayController extends Controller
 {
+    use RespondsWithJsonApi;
+
     public function done(Request $request, TaskInstance $instance)
     {
         $this->authorizeInstance($request, $instance);
@@ -20,7 +24,7 @@ class TodayController extends Controller
             'completed_at' => now(),
         ]);
 
-        return back();
+        return $this->jsonSuccess($instance->fresh()->load('template.category'), __('today.done'));
     }
 
     public function skip(Request $request, TaskInstance $instance)
@@ -33,7 +37,7 @@ class TodayController extends Controller
             'completed_at' => now(),
         ]);
 
-        return back();
+        return $this->jsonSuccess($instance->fresh()->load('template.category'), __('today.skipped'));
     }
 
     public function undo(Request $request, TaskInstance $instance)
@@ -46,7 +50,7 @@ class TodayController extends Controller
             'completed_at' => null,
         ]);
 
-        return back();
+        return $this->jsonSuccess($instance->fresh()->load('template.category'), __('today.undone'));
     }
 
     public function close(Request $request, CloseDaySummaryAction $action)
@@ -55,16 +59,16 @@ class TodayController extends Controller
         $today = Carbon::today();
 
         $exists = DailySummary::where('user_id', $user->id)
-            ->where('date', $today->toDateString())
+            ->whereDate('date', $today)
             ->exists();
 
         if ($exists) {
-            return back()->with('error', 'Ngày hôm nay đã được chốt.');
+            return $this->jsonFail(__('today.already_closed'), 422);
         }
 
         $summary = $action->execute($user->id, $today, 'user');
 
-        return back()->with('closeResult', [
+        return $this->jsonSuccess([
             'hp_change' => $summary->hp_change,
             'hp_after' => $summary->hp_after,
             'xp_earned' => $summary->xp_earned,
@@ -76,7 +80,7 @@ class TodayController extends Controller
             'streak_reset' => $summary->streak_reset,
             'done_count' => $summary->done_count,
             'total_tasks' => $summary->total_tasks,
-        ]);
+        ], __('today.closed'));
     }
 
     protected function authorizeInstance(Request $request, TaskInstance $instance): void
@@ -89,11 +93,11 @@ class TodayController extends Controller
     protected function ensureDayNotClosed(Request $request): void
     {
         $closed = DailySummary::where('user_id', $request->user()->id)
-            ->where('date', Carbon::today()->toDateString())
+            ->whereDate('date', Carbon::today())
             ->exists();
 
         if ($closed) {
-            abort(403, 'Ngày đã được chốt.');
+            abort(403, __('today.day_closed'));
         }
     }
 }

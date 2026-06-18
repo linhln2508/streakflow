@@ -1,11 +1,8 @@
 <script setup>
-import AuthenticatedLayout from '@/Layouts/AuthenticatedLayout.vue';
-import InputError from '@/Components/InputError.vue';
-import InputLabel from '@/Components/InputLabel.vue';
-import PrimaryButton from '@/Components/PrimaryButton.vue';
-import TextInput from '@/Components/TextInput.vue';
-import { Head, useForm } from '@inertiajs/vue3';
-import { computed } from 'vue';
+import { router } from '@inertiajs/vue3';
+import { computed, reactive, ref } from 'vue';
+import { useApi } from '@/composables/useApi';
+import { useFormFields } from '@/composables/useFormFields';
 
 const props = defineProps({
     template: Object,
@@ -13,18 +10,54 @@ const props = defineProps({
 });
 
 const isEdit = computed(() => !!props.template);
+const titleField = ref(null);
+const startDateField = ref(null);
+const { validateAll } = useFormFields();
 
-const form = useForm({
+const form = reactive({
     title: props.template?.title ?? '',
     description: props.template?.description ?? '',
     category_id: props.template?.category_id ?? '',
     priority: props.template?.priority ?? 'medium',
     recurrence_type: props.template?.recurrence_type ?? 'daily',
-    recurrence_config: props.template?.recurrence_config ?? {},
+    recurrence_config: { ...(props.template?.recurrence_config ?? {}) },
     start_date: props.template?.start_date?.substring(0, 10) ?? new Date().toISOString().substring(0, 10),
     end_date: props.template?.end_date?.substring(0, 10) ?? '',
     sort_order: props.template?.sort_order ?? 0,
 });
+
+const monthlyDaysInput = computed({
+    get: () => (form.recurrence_config.days ?? []).join(','),
+    set: (value) => {
+        form.recurrence_config = {
+            ...form.recurrence_config,
+            days: String(value).split(',').map(Number).filter(Boolean),
+        };
+    },
+});
+
+const customInterval = computed({
+    get: () => form.recurrence_config.interval ?? 1,
+    set: (value) => {
+        form.recurrence_config = {
+            ...form.recurrence_config,
+            interval: parseInt(value) || 1,
+            unit: 'day',
+        };
+    },
+});
+
+const oneTimeDate = computed({
+    get: () => form.recurrence_config.date ?? '',
+    set: (value) => {
+        form.recurrence_config = { date: value };
+    },
+});
+
+const categoryOptions = computed(() => [
+    { value: '', label: 'Không có' },
+    ...props.categories.map((c) => ({ value: c.id, label: c.name })),
+]);
 
 const weekDays = [
     { value: 1, label: 'T2' }, { value: 2, label: 'T3' }, { value: 3, label: 'T4' },
@@ -40,12 +73,20 @@ const toggleWeekDay = (day) => {
     form.recurrence_config = { ...form.recurrence_config, days: [...days].sort() };
 };
 
-const submit = () => {
-    if (isEdit.value) {
-        form.put(route('tasks.update', props.template.id));
-    } else {
-        form.post(route('tasks.store'));
+const submit = async () => {
+    if (!validateAll([titleField.value, startDateField.value]).isValid) {
+        return;
     }
+
+    const payload = { ...form, category_id: form.category_id || null, end_date: form.end_date || null };
+
+    if (isEdit.value) {
+        await useApi(route('web_api.tasks.update', props.template.id)).put(payload);
+    } else {
+        await useApi(route('web_api.tasks.store')).post(payload);
+    }
+
+    router.visit(route('tasks.index'));
 };
 </script>
 
@@ -53,98 +94,45 @@ const submit = () => {
     <Head :title="isEdit ? 'Sửa task' : 'Tạo task'" />
     <AuthenticatedLayout>
         <template #header>
-            <h2 class="text-xl font-semibold text-gray-800">{{ isEdit ? 'Sửa task' : 'Tạo task mới' }}</h2>
+            <h2 class="text-xl font-semibold">{{ isEdit ? 'Sửa task' : 'Tạo task mới' }}</h2>
         </template>
 
         <div class="py-8">
-            <form @submit.prevent="submit" class="mx-auto max-w-2xl space-y-6 rounded-xl bg-white p-6 shadow-sm">
-                <div>
-                    <InputLabel value="Tiêu đề" />
-                    <TextInput v-model="form.title" class="mt-1 block w-full" required />
-                    <InputError :message="form.errors.title" />
-                </div>
+            <Card class="mx-auto max-w-2xl">
+                <CardContent class="pt-6">
+                    <form @submit.prevent="submit" class="space-y-4">
+                        <Field ref="titleField" v-model="form.title" :field="{ label: 'Tiêu đề', type: 'Text', validate: 'required|string|max:255' }" />
+                        <Field v-model="form.description" :field="{ label: 'Mô tả', type: 'Textarea' }" />
 
-                <div>
-                    <InputLabel value="Mô tả" />
-                    <textarea v-model="form.description" class="mt-1 block w-full rounded-md border-gray-300 shadow-sm" rows="2" />
-                </div>
+                        <div class="grid grid-cols-2 gap-4">
+                            <Field v-model="form.category_id" :field="{ label: 'Danh mục', type: 'Select', placeholder: 'Không có', options: categoryOptions }" />
+                            <Field v-model="form.priority" :field="{ label: 'Ưu tiên', type: 'Select', options: [{ value: 'low', label: 'Thấp' }, { value: 'medium', label: 'Trung bình' }, { value: 'high', label: 'Cao' }] }" />
+                        </div>
 
-                <div class="grid grid-cols-2 gap-4">
-                    <div>
-                        <InputLabel value="Danh mục" />
-                        <select v-model="form.category_id" class="mt-1 block w-full rounded-md border-gray-300 shadow-sm">
-                            <option value="">Không có</option>
-                            <option v-for="c in categories" :key="c.id" :value="c.id">{{ c.name }}</option>
-                        </select>
-                    </div>
-                    <div>
-                        <InputLabel value="Ưu tiên" />
-                        <select v-model="form.priority" class="mt-1 block w-full rounded-md border-gray-300 shadow-sm">
-                            <option value="low">Thấp</option>
-                            <option value="medium">Trung bình</option>
-                            <option value="high">Cao</option>
-                        </select>
-                    </div>
-                </div>
+                        <Field v-model="form.recurrence_type" :field="{ label: 'Loại lặp lại', type: 'Select', options: [{ value: 'daily', label: 'Hàng ngày' }, { value: 'weekdays', label: 'Thứ 2 – Thứ 6' }, { value: 'weekly', label: 'Theo tuần' }, { value: 'monthly', label: 'Theo tháng' }, { value: 'custom', label: 'Tùy chỉnh' }, { value: 'one_time', label: 'Một lần' }] }" />
 
-                <div>
-                    <InputLabel value="Loại lặp lại" />
-                    <select v-model="form.recurrence_type" class="mt-1 block w-full rounded-md border-gray-300 shadow-sm">
-                        <option value="daily">Hàng ngày</option>
-                        <option value="weekdays">Thứ 2 – Thứ 6</option>
-                        <option value="weekly">Theo tuần (chọn thứ)</option>
-                        <option value="monthly">Theo tháng (chọn ngày)</option>
-                        <option value="custom">Tùy chỉnh (mỗi N ngày)</option>
-                        <option value="one_time">Một lần</option>
-                    </select>
-                </div>
+                        <div v-if="form.recurrence_type === 'weekly'" class="flex flex-wrap gap-2">
+                            <Button v-for="d in weekDays" :key="d.value" type="button" size="sm" :variant="(form.recurrence_config.days ?? []).includes(d.value) ? 'default' : 'outline'" @click="toggleWeekDay(d.value)">
+                                {{ d.label }}
+                            </Button>
+                        </div>
 
-                <div v-if="form.recurrence_type === 'weekly'" class="flex flex-wrap gap-2">
-                    <button
-                        v-for="d in weekDays" :key="d.value" type="button"
-                        @click="toggleWeekDay(d.value)"
-                        class="rounded-lg px-3 py-1.5 text-sm"
-                        :class="(form.recurrence_config.days ?? []).includes(d.value) ? 'bg-indigo-600 text-white' : 'bg-gray-100 text-gray-600'"
-                    >{{ d.label }}</button>
-                </div>
+                        <Field v-if="form.recurrence_type === 'monthly'" v-model="monthlyDaysInput" :field="{ label: 'Ngày trong tháng (VD: 1,15)', type: 'Text', validate: 'required' }" />
+                        <Field v-if="form.recurrence_type === 'custom'" v-model="customInterval" :field="{ label: 'Mỗi N ngày', type: 'Number', validate: 'required|integer|min:1' }" />
+                        <Field v-if="form.recurrence_type === 'one_time'" v-model="oneTimeDate" :field="{ label: 'Ngày thực hiện', type: 'Date', validate: 'required|date' }" />
 
-                <div v-if="form.recurrence_type === 'monthly'">
-                    <InputLabel value="Ngày trong tháng (VD: 1,15)" />
-                    <TextInput
-                        :model-value="(form.recurrence_config.days ?? []).join(',')"
-                        @update:model-value="form.recurrence_config = { days: $event.split(',').map(Number).filter(Boolean) }"
-                        class="mt-1 block w-full" placeholder="1,15"
-                    />
-                </div>
+                        <div class="grid grid-cols-2 gap-4">
+                            <Field ref="startDateField" v-model="form.start_date" :field="{ label: 'Ngày bắt đầu', type: 'Date', validate: 'required|date' }" />
+                            <Field v-model="form.end_date" :field="{ label: 'Ngày kết thúc (tùy chọn)', type: 'Date' }" />
+                        </div>
 
-                <div v-if="form.recurrence_type === 'custom'">
-                    <InputLabel value="Mỗi N ngày" />
-                    <TextInput
-                        type="number" min="1"
-                        :model-value="form.recurrence_config.interval ?? 1"
-                        @update:model-value="form.recurrence_config = { interval: parseInt($event) || 1, unit: 'day' }"
-                        class="mt-1 block w-full"
-                    />
-                </div>
-
-                <div v-if="form.recurrence_type === 'one_time'">
-                    <InputLabel value="Ngày thực hiện" />
-                    <TextInput type="date" :model-value="form.recurrence_config.date" @update:model-value="form.recurrence_config = { date: $event }" class="mt-1 block w-full" />
-                </div>
-
-                <div class="grid grid-cols-2 gap-4">
-                    <div>
-                        <InputLabel value="Ngày bắt đầu" />
-                        <TextInput type="date" v-model="form.start_date" class="mt-1 block w-full" required />
-                    </div>
-                    <div>
-                        <InputLabel value="Ngày kết thúc (tùy chọn)" />
-                        <TextInput type="date" v-model="form.end_date" class="mt-1 block w-full" />
-                    </div>
-                </div>
-
-                <PrimaryButton :disabled="form.processing">{{ isEdit ? 'Cập nhật' : 'Tạo task' }}</PrimaryButton>
-            </form>
+                        <Button type="submit">
+                            <DynamicIcon name="Save" size="14" class="mr-1" />
+                            {{ isEdit ? 'Cập nhật' : 'Tạo task' }}
+                        </Button>
+                    </form>
+                </CardContent>
+            </Card>
         </div>
     </AuthenticatedLayout>
 </template>

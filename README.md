@@ -6,7 +6,7 @@
 
 - **Backend:** Laravel 13 (PHP 8.2+)
 - **Frontend:** Vue 3 + Inertia.js
-- **UI:** Tailwind CSS
+- **UI:** shadcn-vue (reka-ui) + Tailwind CSS + Chart.js
 - **Database:** SQLite (dev) / MySQL (production)
 - **Queue:** Laravel Queue (database driver)
 - **Cron:** Laravel Task Scheduling
@@ -18,8 +18,8 @@ composer install
 cp .env.example .env
 php artisan key:generate
 php artisan migrate --seed
-npm install
-npm run build
+pnpm install
+pnpm run build
 php artisan serve
 ```
 
@@ -30,7 +30,7 @@ Chạy dev:
 php artisan serve
 
 # Terminal 2
-npm run dev
+pnpm run dev
 
 # Terminal 3 (queue worker)
 php artisan queue:work
@@ -55,27 +55,28 @@ Scheduled commands:
 | admin@streakflow.test | password | admin |
 | user@streakflow.test | password | user |
 
-## Cấu trúc chính
+## Cấu trúc & quy ước
 
 ```
-app/
-├── Actions/
-│   ├── CloseDaySummaryAction.php      # Core engine chốt ngày
-│   └── GenerateDailyTaskInstancesAction.php
-├── Services/
-│   ├── GamificationService.php      # HP, XP, Level, Streak logic
-│   ├── TaskRecurrenceService.php      # Kiểm tra recurrence
-│   └── BadgeService.php
-├── Http/Controllers/
-│   ├── DashboardController.php
-│   ├── TaskTemplateController.php
-│   ├── TodayController.php
-│   ├── ReportController.php
-│   └── AdminController.php
-└── Console/Commands/
-    ├── GenerateDailyTaskInstancesCommand.php
-    └── AutoClosePreviousDaySummariesCommand.php
+routes/
+├── web.php          → Inertia pages (GET)
+├── web_api.php      → API nội bộ (prefix /web_api) → WebApi controllers
+└── api.php          → API khách hàng bên ngoài → Api controllers
+
+app/Http/Controllers/WebApi/   → JSON { success, data, message? }
+resources/js/
+├── Components/Form/Field.vue  → Input + validate
+├── Components/DynamicIcon.vue → Lucide icons
+├── composables/useApi.js      → API + sonner toast
+├── lang/validation.js         → FE validation messages
+└── utils/fieldValidation.js
+
+lang/vi/categories.php | tasks.php | today.php   → i18n BE (không dùng ui.php)
 ```
+
+**Quy ước FE:** `useApi(route('web_api.xxx'))` · `Field` với `validate: 'required|email'` · `<DynamicIcon name="Heart" />` · auto-import components · mutations qua `/web_api/*`
+
+**pnpm:** Dùng `pnpm install` với `.npmrc` trỏ `registry.npmmirror.com` (tránh timeout IPv6 tới registry.npmjs.org). Sync lockfile: `pnpm import`.
 
 ## Gamification
 
@@ -88,11 +89,11 @@ app/
 
 | Method | URI | Mô tả |
 |--------|-----|-------|
-| GET | /dashboard | Today view |
-| CRUD | /tasks | Task templates |
-| PATCH | /today/{id}/done\|skip\|undo | Tương tác task |
-| POST | /today/close | Chốt ngày |
-| GET | /reports/* | Báo cáo ngày/tuần/tháng/tổng quan |
+| GET | /dashboard | Today view (Inertia) |
+| GET | /tasks, /categories | Danh sách (Inertia) |
+| POST/PATCH/DELETE | /web_api/* | Mutations qua JSON API (session) |
+| POST/PATCH/DELETE | /api/* | API khách hàng (Sanctum token) |
+| GET | /reports/* | Báo cáo |
 | GET | /admin/* | Admin panel |
 
 ## License

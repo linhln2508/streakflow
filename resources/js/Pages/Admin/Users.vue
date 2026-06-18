@@ -1,5 +1,9 @@
 <script setup>
 import AuthenticatedLayout from '@/Layouts/AuthenticatedLayout.vue';
+import Badge from '@/Components/ui/Badge.vue';
+import Button from '@/Components/ui/Button.vue';
+import Card from '@/Components/ui/Card.vue';
+import Input from '@/Components/ui/Input.vue';
 import { Head, Link, router } from '@inertiajs/vue3';
 import { ref } from 'vue';
 
@@ -14,38 +18,51 @@ const applySearch = () => router.get(route('admin.users'), { search: search.valu
     <AuthenticatedLayout>
         <template #header>
             <div class="flex items-center justify-between">
-                <h2 class="text-xl font-semibold text-gray-800">Quản lý Users</h2>
-                <Link :href="route('admin.analytics')" class="text-sm text-indigo-600">Analytics →</Link>
+                <h2 class="text-xl font-semibold">Quản lý Users</h2>
+                <Link :href="route('admin.analytics')" class="text-sm text-primary hover:underline">Analytics →</Link>
             </div>
         </template>
         <div class="py-8">
             <div class="mx-auto max-w-5xl px-4">
                 <form @submit.prevent="applySearch" class="mb-4 flex gap-2">
-                    <input v-model="search" placeholder="Tìm kiếm..." class="rounded-lg border-gray-300 text-sm flex-1" />
-                    <button type="submit" class="rounded-lg bg-indigo-600 px-4 py-2 text-sm text-white">Tìm</button>
+                    <Input v-model="search" placeholder="Tìm kiếm..." class="flex-1" />
+                    <Button type="submit">Tìm</Button>
                 </form>
-                <table class="w-full rounded-xl bg-white shadow-sm overflow-hidden">
-                    <thead class="bg-gray-50 text-left text-xs text-gray-500 uppercase">
-                        <tr>
-                            <th class="px-4 py-3">Tên</th>
-                            <th class="px-4 py-3">Email</th>
-                            <th class="px-4 py-3">Role</th>
-                            <th class="px-4 py-3">Level</th>
-                            <th class="px-4 py-3">Streak</th>
-                            <th class="px-4 py-3"></th>
-                        </tr>
-                    </thead>
-                    <tbody>
-                        <tr v-for="u in users.data" :key="u.id" class="border-t">
-                            <td class="px-4 py-3">{{ u.name }}</td>
-                            <td class="px-4 py-3 text-sm text-gray-500">{{ u.email }}</td>
-                            <td class="px-4 py-3"><span class="rounded px-2 py-0.5 text-xs" :class="u.role === 'admin' ? 'bg-purple-100 text-purple-700' : 'bg-gray-100'">{{ u.role }}</span></td>
-                            <td class="px-4 py-3">Lv.{{ u.level }}</td>
-                            <td class="px-4 py-3">🔥 {{ u.streak_count }}</td>
-                            <td class="px-4 py-3"><Link :href="route('admin.users.show', u.id)" class="text-sm text-indigo-600">Chi tiết</Link></td>
-                        </tr>
-                    </tbody>
-                </table>
+                <Card>
+                    <div class="overflow-x-auto">
+                        <table class="w-full text-left text-sm">
+                            <thead class="border-b bg-muted/50 text-xs uppercase text-muted-foreground">
+                                <tr>
+                                    <th class="px-4 py-3">Tên</th>
+                                    <th class="px-4 py-3">Email</th>
+                                    <th class="px-4 py-3">Role</th>
+                                    <th class="px-4 py-3">Level</th>
+                                    <th class="px-4 py-3">Streak</th>
+                                    <th class="px-4 py-3"></th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                <tr v-for="u in users.data" :key="u.id" class="border-b last:border-0">
+                                    <td class="px-4 py-3 font-medium">{{ u.name }}</td>
+                                    <td class="px-4 py-3 text-muted-foreground">{{ u.email }}</td>
+                                    <td class="px-4 py-3">
+                                        <Badge :variant="u.role === 'admin' ? 'default' : 'secondary'">{{ u.role }}</Badge>
+                                    </td>
+                                    <td class="px-4 py-3">Lv.{{ u.level }}</td>
+                                    <td class="px-4 py-3">
+                                        <span class="inline-flex items-center gap-1">
+                                            <DynamicIcon name="Flame" size="14" class="text-orange-500" />
+                                            {{ u.streak_count }}
+                                        </span>
+                                    </td>
+                                    <td class="px-4 py-3">
+                                        <Link :href="route('admin.users.show', u.id)" class="text-primary hover:underline">Chi tiết</Link>
+                                    </td>
+                                </tr>
+                            </tbody>
+                        </table>
+                    </div>
+                </Card>
             </div>
         </div>
     </AuthenticatedLayout>

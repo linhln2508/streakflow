@@ -1,60 +1,56 @@
 <script setup>
-import { computed } from 'vue';
-import GuestLayout from '@/Layouts/GuestLayout.vue';
-import PrimaryButton from '@/Components/PrimaryButton.vue';
-import { Head, Link, useForm } from '@inertiajs/vue3';
+import { computed, ref } from 'vue';
+import { router } from '@inertiajs/vue3';
+import { useApi, unwrapApiData } from '@/composables/useApi';
 
-const props = defineProps({
-    status: {
-        type: String,
-    },
-});
+const props = defineProps({ status: { type: String } });
 
-const form = useForm({});
+const processing = ref(false);
+const localStatus = ref('');
 
-const submit = () => {
-    form.post(route('verification.send'));
+const submit = async () => {
+    processing.value = true;
+
+    try {
+        const response = await useApi(route('web_api.auth.verification_send')).post();
+        localStatus.value = unwrapApiData(response)?.status ?? 'verification-link-sent';
+    } finally {
+        processing.value = false;
+    }
 };
 
-const verificationLinkSent = computed(
-    () => props.status === 'verification-link-sent',
+const logout = async () => {
+    const response = await useApi(route('web_api.auth.logout')).post();
+    router.visit(unwrapApiData(response)?.redirect ?? '/');
+};
+
+const verificationLinkSent = computed(() =>
+    props.status === 'verification-link-sent' || localStatus.value === 'verification-link-sent',
 );
 </script>
 
 <template>
     <GuestLayout>
-        <Head title="Email Verification" />
+        <Head title="Xác minh email" />
 
-        <div class="mb-4 text-sm text-gray-600">
-            Thanks for signing up! Before getting started, could you verify your
-            email address by clicking on the link we just emailed to you? If you
-            didn't receive the email, we will gladly send you another.
-        </div>
+        <p class="mb-4 text-sm text-muted-foreground">
+            Cảm ơn bạn đã đăng ký! Vui lòng xác minh email bằng link chúng tôi đã gửi. Nếu chưa nhận được, bạn có thể yêu cầu gửi lại.
+        </p>
 
-        <div
-            class="mb-4 text-sm font-medium text-green-600"
-            v-if="verificationLinkSent"
-        >
-            A new verification link has been sent to the email address you
-            provided during registration.
+        <div v-if="verificationLinkSent" class="mb-4 text-sm font-medium text-green-600">
+            Link xác minh mới đã được gửi đến email của bạn.
         </div>
 
         <form @submit.prevent="submit">
-            <div class="mt-4 flex items-center justify-between">
-                <PrimaryButton
-                    :class="{ 'opacity-25': form.processing }"
-                    :disabled="form.processing"
+            <div class="flex items-center justify-between gap-3">
+                <Button type="submit" :disabled="processing">Gửi lại email xác minh</Button>
+                <button
+                    type="button"
+                    class="text-sm text-muted-foreground underline hover:text-foreground"
+                    @click="logout"
                 >
-                    Resend Verification Email
-                </PrimaryButton>
-
-                <Link
-                    :href="route('logout')"
-                    method="post"
-                    as="button"
-                    class="rounded-md text-sm text-gray-600 underline hover:text-gray-900 focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:ring-offset-2"
-                    >Log Out</Link
-                >
+                    Đăng xuất
+                </button>
             </div>
         </form>
     </GuestLayout>

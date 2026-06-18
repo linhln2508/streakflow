@@ -1,8 +1,15 @@
 <script setup>
 import AuthenticatedLayout from '@/Layouts/AuthenticatedLayout.vue';
-import { Head, Link } from '@inertiajs/vue3';
+import Button from '@/Components/ui/Button.vue';
+import Card from '@/Components/ui/Card.vue';
+import CardContent from '@/Components/ui/CardContent.vue';
+import CardHeader from '@/Components/ui/CardHeader.vue';
+import CardTitle from '@/Components/ui/CardTitle.vue';
+import Progress from '@/Components/ui/Progress.vue';
+import { Head } from '@inertiajs/vue3';
+import { computed } from 'vue';
 
-defineProps({
+const props = defineProps({
     user: Object,
     xpToNextLevel: Number,
     xpForNextLevel: Number,
@@ -11,57 +18,88 @@ defineProps({
 });
 
 const now = new Date();
+const xpProgress = computed(() => Math.min(100, (props.user.xp / props.xpForNextLevel) * 100));
 </script>
 
 <template>
     <Head title="Tổng quan" />
     <AuthenticatedLayout>
         <template #header>
-            <h2 class="text-xl font-semibold text-gray-800">Tổng quan</h2>
+            <h2 class="text-xl font-semibold">Tổng quan</h2>
         </template>
         <div class="py-8">
             <div class="mx-auto max-w-3xl space-y-6 px-4">
                 <div class="grid grid-cols-2 gap-4 sm:grid-cols-3">
-                    <div class="rounded-xl bg-white p-4 shadow-sm text-center">
-                        <div class="text-3xl font-bold text-amber-600">Lv.{{ user.level }}</div>
-                        <div class="text-xs text-gray-500 mt-1">{{ user.xp }} XP</div>
-                    </div>
-                    <div class="rounded-xl bg-white p-4 shadow-sm text-center">
-                        <div class="text-3xl font-bold text-orange-600">🔥 {{ user.streak_count }}</div>
-                        <div class="text-xs text-gray-500 mt-1">Streak hiện tại</div>
-                    </div>
-                    <div class="rounded-xl bg-white p-4 shadow-sm text-center">
-                        <div class="text-3xl font-bold text-red-600">❤️ {{ user.hp }}</div>
-                        <div class="text-xs text-gray-500 mt-1">HP</div>
-                    </div>
+                    <Card>
+                        <CardContent class="pt-6 text-center">
+                            <div class="text-3xl font-bold text-amber-600">Lv.{{ user.level }}</div>
+                            <div class="mt-1 text-xs text-muted-foreground">{{ user.xp }} XP</div>
+                        </CardContent>
+                    </Card>
+                    <Card>
+                        <CardContent class="pt-6 text-center">
+                            <div class="flex items-center justify-center gap-2 text-3xl font-bold text-orange-600">
+                                <DynamicIcon name="Flame" size="28" />
+                                {{ user.streak_count }}
+                            </div>
+                            <div class="mt-1 text-xs text-muted-foreground">Streak hiện tại</div>
+                        </CardContent>
+                    </Card>
+                    <Card>
+                        <CardContent class="pt-6 text-center">
+                            <div class="flex items-center justify-center gap-2 text-3xl font-bold text-red-600">
+                                <DynamicIcon name="Heart" size="28" class="text-red-500" />
+                                {{ user.hp }}
+                            </div>
+                            <div class="mt-1 text-xs text-muted-foreground">HP</div>
+                        </CardContent>
+                    </Card>
                 </div>
 
-                <div class="rounded-xl bg-white p-4 shadow-sm">
-                    <div class="flex justify-between text-sm mb-2">
-                        <span>XP đến level {{ user.level + 1 }}</span>
-                        <span>{{ xpToNextLevel }} XP còn lại</span>
-                    </div>
-                    <div class="h-3 rounded-full bg-gray-200">
-                        <div class="h-3 rounded-full bg-amber-500" :style="{ width: Math.min(100, (user.xp / xpForNextLevel) * 100) + '%' }" />
-                    </div>
-                    <p class="mt-2 text-xs text-gray-400">Streak dài nhất: {{ longestStreak }} ngày</p>
-                </div>
+                <Card>
+                    <CardContent class="pt-6">
+                        <div class="mb-2 flex justify-between text-sm">
+                            <span>XP đến level {{ user.level + 1 }}</span>
+                            <span>{{ xpToNextLevel }} XP còn lại</span>
+                        </div>
+                        <Progress :model-value="xpProgress" />
+                        <p class="mt-2 text-xs text-muted-foreground">Streak dài nhất: {{ longestStreak }} ngày</p>
+                    </CardContent>
+                </Card>
 
                 <div class="flex gap-3">
-                    <Link :href="route('reports.week', { year: now.getFullYear(), week: Math.ceil((now - new Date(now.getFullYear(), 0, 1)) / 86400000 / 7) })" class="rounded-lg bg-indigo-50 px-4 py-2 text-sm text-indigo-700 hover:bg-indigo-100">Tuần này</Link>
-                    <Link :href="route('reports.month', { year: now.getFullYear(), month: now.getMonth() + 1 })" class="rounded-lg bg-indigo-50 px-4 py-2 text-sm text-indigo-700 hover:bg-indigo-100">Tháng này</Link>
+                    <Button
+                        as="a"
+                        variant="outline"
+                        :href="route('reports.week', { year: now.getFullYear(), week: Math.ceil((now - new Date(now.getFullYear(), 0, 1)) / 86400000 / 7) })"
+                    >
+                        Tuần này
+                    </Button>
+                    <Button
+                        as="a"
+                        variant="outline"
+                        :href="route('reports.month', { year: now.getFullYear(), month: now.getMonth() + 1 })"
+                    >
+                        Tháng này
+                    </Button>
                 </div>
 
-                <div class="rounded-xl bg-white p-4 shadow-sm">
-                    <h3 class="mb-3 font-medium">Badges ({{ badges.length }})</h3>
-                    <div class="grid grid-cols-2 gap-3 sm:grid-cols-4">
-                        <div v-for="b in badges" :key="b.id" class="rounded-lg bg-gray-50 p-3 text-center">
-                            <div class="text-2xl">{{ b.icon }}</div>
-                            <div class="mt-1 text-xs font-medium">{{ b.name }}</div>
+                <Card>
+                    <CardHeader>
+                        <CardTitle>Badges ({{ badges.length }})</CardTitle>
+                    </CardHeader>
+                    <CardContent>
+                        <div class="grid grid-cols-2 gap-3 sm:grid-cols-4">
+                            <div v-for="b in badges" :key="b.id" class="rounded-lg bg-muted/50 p-3 text-center">
+                                <div class="flex justify-center">
+                                    <DynamicIcon v-if="b.icon" :name="b.icon" size="28" />
+                                </div>
+                                <div class="mt-1 text-xs font-medium">{{ b.name }}</div>
+                            </div>
                         </div>
-                    </div>
-                    <p v-if="badges.length === 0" class="text-center text-gray-400 text-sm">Chưa có badge nào.</p>
-                </div>
+                        <p v-if="badges.length === 0" class="text-center text-sm text-muted-foreground">Chưa có badge nào.</p>
+                    </CardContent>
+                </Card>
             </div>
         </div>
     </AuthenticatedLayout>

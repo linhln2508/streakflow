@@ -1,108 +1,70 @@
 <script setup>
-import DangerButton from '@/Components/DangerButton.vue';
-import InputError from '@/Components/InputError.vue';
-import InputLabel from '@/Components/InputLabel.vue';
-import Modal from '@/Components/Modal.vue';
-import SecondaryButton from '@/Components/SecondaryButton.vue';
-import TextInput from '@/Components/TextInput.vue';
-import { useForm } from '@inertiajs/vue3';
-import { nextTick, ref } from 'vue';
+import { router } from '@inertiajs/vue3';
+import { nextTick, reactive, ref } from 'vue';
+import { useApi, unwrapApiData } from '@/composables/useApi';
+import { useFormFields } from '@/composables/useFormFields';
 
 const confirmingUserDeletion = ref(false);
-const passwordInput = ref(null);
+const passwordField = ref(null);
+const processing = ref(false);
+const { validateAll } = useFormFields();
 
-const form = useForm({
-    password: '',
-});
+const form = reactive({ password: '' });
 
 const confirmUserDeletion = () => {
     confirmingUserDeletion.value = true;
-
-    nextTick(() => passwordInput.value.focus());
+    nextTick(() => passwordField.value?.validate?.());
 };
 
-const deleteUser = () => {
-    form.delete(route('profile.destroy'), {
-        preserveScroll: true,
-        onSuccess: () => closeModal(),
-        onError: () => passwordInput.value.focus(),
-        onFinish: () => form.reset(),
-    });
+const deleteUser = async () => {
+    if (!validateAll([passwordField.value]).isValid) {
+        return;
+    }
+
+    processing.value = true;
+
+    try {
+        const response = await useApi(route('web_api.profile.destroy')).delete({ password: form.password });
+        const redirect = unwrapApiData(response)?.redirect ?? '/';
+        router.visit(redirect);
+    } finally {
+        processing.value = false;
+        closeModal();
+    }
 };
 
 const closeModal = () => {
     confirmingUserDeletion.value = false;
-
-    form.clearErrors();
-    form.reset();
+    form.password = '';
+    passwordField.value?.resetField?.();
 };
 </script>
 
 <template>
-    <section class="space-y-6">
+    <section class="space-y-4">
         <header>
-            <h2 class="text-lg font-medium text-gray-900">
-                Delete Account
-            </h2>
-
-            <p class="mt-1 text-sm text-gray-600">
-                Once your account is deleted, all of its resources and data will
-                be permanently deleted. Before deleting your account, please
-                download any data or information that you wish to retain.
+            <h2 class="text-lg font-semibold">Xóa tài khoản</h2>
+            <p class="mt-1 text-sm text-muted-foreground">
+                Sau khi xóa, toàn bộ dữ liệu sẽ bị xóa vĩnh viễn. Hãy chắc chắn trước khi thực hiện.
             </p>
         </header>
 
-        <DangerButton @click="confirmUserDeletion">Delete Account</DangerButton>
+        <Button variant="destructive" @click="confirmUserDeletion">Xóa tài khoản</Button>
 
-        <Modal :show="confirmingUserDeletion" @close="closeModal">
-            <div class="p-6">
-                <h2
-                    class="text-lg font-medium text-gray-900"
-                >
-                    Are you sure you want to delete your account?
-                </h2>
+        <Dialog :open="confirmingUserDeletion" @update:open="confirmingUserDeletion = $event">
+            <template #title>Xác nhận xóa tài khoản?</template>
+            <template #description>
+                Nhập mật khẩu để xác nhận xóa vĩnh viễn tài khoản của bạn.
+            </template>
 
-                <p class="mt-1 text-sm text-gray-600">
-                    Once your account is deleted, all of its resources and data
-                    will be permanently deleted. Please enter your password to
-                    confirm you would like to permanently delete your account.
-                </p>
+            <Field ref="passwordField" v-model="form.password" :field="{ label: 'Mật khẩu', type: 'Password', validate: 'required' }" />
 
-                <div class="mt-6">
-                    <InputLabel
-                        for="password"
-                        value="Password"
-                        class="sr-only"
-                    />
-
-                    <TextInput
-                        id="password"
-                        ref="passwordInput"
-                        v-model="form.password"
-                        type="password"
-                        class="mt-1 block w-3/4"
-                        placeholder="Password"
-                        @keyup.enter="deleteUser"
-                    />
-
-                    <InputError :message="form.errors.password" class="mt-2" />
-                </div>
-
-                <div class="mt-6 flex justify-end">
-                    <SecondaryButton @click="closeModal">
-                        Cancel
-                    </SecondaryButton>
-
-                    <DangerButton
-                        class="ms-3"
-                        :class="{ 'opacity-25': form.processing }"
-                        :disabled="form.processing"
-                        @click="deleteUser"
-                    >
-                        Delete Account
-                    </DangerButton>
-                </div>
+            <div class="mt-6 flex justify-end gap-3">
+                <Button variant="outline" @click="closeModal">Hủy</Button>
+                <Button variant="destructive" :disabled="processing" @click="deleteUser">
+                    Xóa tài khoản
+                </Button>
             </div>
-        </Modal>
+        </Dialog>
     </section>
 </template>

@@ -46,18 +46,6 @@ class TaskTemplateController extends Controller
         ]);
     }
 
-    public function store(Request $request)
-    {
-        $validated = $this->validateTemplate($request);
-
-        TaskTemplate::create([
-            ...$validated,
-            'user_id' => $request->user()->id,
-        ]);
-
-        return redirect()->route('tasks.index')->with('success', 'Task đã được tạo.');
-    }
-
     public function edit(Request $request, TaskTemplate $task)
     {
         $this->authorizeTemplate($request, $task);
@@ -67,64 +55,6 @@ class TaskTemplateController extends Controller
             'template' => $task,
             'categories' => $categories,
         ]);
-    }
-
-    public function update(Request $request, TaskTemplate $task)
-    {
-        $this->authorizeTemplate($request, $task);
-        $validated = $this->validateTemplate($request);
-        $task->update($validated);
-
-        return redirect()->route('tasks.index')->with('success', 'Task đã được cập nhật.');
-    }
-
-    public function destroy(Request $request, TaskTemplate $task)
-    {
-        $this->authorizeTemplate($request, $task);
-        $task->delete();
-
-        return redirect()->route('tasks.index')->with('success', 'Task đã được xóa.');
-    }
-
-    public function toggle(Request $request, TaskTemplate $task)
-    {
-        $this->authorizeTemplate($request, $task);
-        $task->update(['is_active' => !$task->is_active]);
-
-        return back();
-    }
-
-    protected function validateTemplate(Request $request): array
-    {
-        $validated = $request->validate([
-            'title' => 'required|string|max:255',
-            'description' => 'nullable|string',
-            'category_id' => 'nullable|exists:categories,id',
-            'priority' => 'required|in:low,medium,high',
-            'recurrence_type' => 'required|in:daily,weekly,monthly,weekdays,custom,one_time',
-            'recurrence_config' => 'nullable|array',
-            'start_date' => 'required|date',
-            'end_date' => 'nullable|date|after_or_equal:start_date',
-            'sort_order' => 'integer|min:0',
-        ]);
-
-        if ($validated['recurrence_type'] === 'one_time') {
-            $request->validate(['recurrence_config.date' => 'required|date']);
-        }
-
-        if ($validated['recurrence_type'] === 'weekly') {
-            $request->validate(['recurrence_config.days' => 'required|array|min:1']);
-        }
-
-        if ($validated['recurrence_type'] === 'monthly') {
-            $request->validate(['recurrence_config.days' => 'required|array|min:1']);
-        }
-
-        if ($validated['recurrence_type'] === 'custom') {
-            $request->validate(['recurrence_config.interval' => 'required|integer|min:1']);
-        }
-
-        return $validated;
     }
 
     protected function authorizeTemplate(Request $request, TaskTemplate $task): void
