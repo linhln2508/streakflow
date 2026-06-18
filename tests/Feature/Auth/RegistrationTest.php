@@ -25,7 +25,14 @@ class RegistrationTest extends TestCase
             'password_confirmation' => 'password',
         ]);
 
-        $this->assertAuthenticated();
-        $response->assertOk()->assertJsonPath('success', true);
+        $this->assertGuest();
+        $response->assertOk()
+            ->assertJsonPath('success', true)
+            ->assertJsonPath('data.redirect', route('login', absolute: false));
+
+        $this->assertDatabaseHas('users', [
+            'email' => 'test@example.com',
+            'is_approved' => false,
+        ]);
     }
 }

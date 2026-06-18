@@ -30,6 +30,11 @@ class GamificationService
         return min(100, $hpBefore + $hpChange);
     }
 
+    public function applyManualHpAdjustment(int $currentHp, int $delta): int
+    {
+        return min(100, $currentHp + $delta);
+    }
+
     public function calculateCompletionPercent(int $done, int $total): float
     {
         if ($total === 0) {

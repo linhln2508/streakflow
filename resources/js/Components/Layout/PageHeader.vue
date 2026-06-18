@@ -1,4 +1,5 @@
 <script setup>
+import AppContainer from '@/Components/Layout/AppContainer.vue';
 import { cn } from '@/lib/utils';
 import { Link } from '@inertiajs/vue3';
 
@@ -6,13 +7,18 @@ defineProps({
     title: { type: String, required: true },
     description: { type: String, default: '' },
     breadcrumbs: { type: Array, default: () => [] },
+    size: {
+        type: String,
+        default: 'default',
+        validator: (value) => ['default', 'narrow', 'wide'].includes(value),
+    },
     class: { type: String, default: '' },
 });
 </script>
 
 <template>
-    <header :class="cn('page-gradient border-b border-border/60 bg-card/40 px-4 py-6 sm:px-8', $props.class)">
-        <div class="mx-auto flex max-w-6xl items-center justify-between gap-4">
+    <header :class="cn('page-gradient border-b border-border/60 bg-card/40 py-6', $props.class)">
+        <AppContainer :size="size" class="flex items-center justify-between gap-4">
             <div class="min-w-0 flex-1">
                 <nav v-if="breadcrumbs.length" class="mb-2 flex flex-wrap items-center gap-1 text-sm text-muted-foreground">
                     <template v-for="(item, index) in breadcrumbs" :key="index">
@@ -40,6 +46,6 @@ defineProps({
             <div v-if="$slots.actions" class="flex shrink-0 flex-wrap items-center gap-2">
                 <slot name="actions" />
             </div>
-        </div>
+        </AppContainer>
     </header>
 </template>

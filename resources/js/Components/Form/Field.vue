@@ -10,6 +10,7 @@ const props = defineProps({
         required: true,
     },
     disabled: { type: Boolean, default: false },
+    skipValidate: { type: Boolean, default: false },
 });
 
 const emit = defineEmits(['update:modelValue', 'focus', 'enter']);
@@ -19,23 +20,23 @@ const localField = ref({
     ...props.field,
 });
 const errors = ref({});
-const isResetForm = ref(false);
+const skipValidationOnChange = ref(false);
 
-const validateField = () => {
+const validateValue = (value) => {
     if (props.field.customValidator) {
-        const customResult = props.field.customValidator(props.modelValue);
+        const customResult = props.field.customValidator(value);
         if (customResult !== true) {
-            errors.value = isResetForm.value ? {} : { custom: customResult };
-            isResetForm.value = false;
+            errors.value = { custom: customResult };
             return false;
         }
     }
 
-    const { isValid, errors: validationErrors } = validate(props.modelValue, props.field);
-    errors.value = isResetForm.value ? {} : validationErrors;
-    isResetForm.value = false;
+    const { isValid, errors: validationErrors } = validate(value, props.field);
+    errors.value = validationErrors;
     return isValid;
 };
+
+const validateField = () => validateValue(props.modelValue);
 
 watch(() => props.field, (newVal) => {
     localField.value = { ...localField.value, ...newVal };
@@ -45,12 +46,33 @@ watch(() => props.disabled, (newVal) => {
     localField.value = { ...localField.value, disabled: newVal };
 }, { immediate: true });
 
-watch(() => props.modelValue, () => {
-    validateField();
+watch(() => props.skipValidate, (skip) => {
+    if (skip) {
+        errors.value = {};
+    }
 });
 
-const resetField = () => {
-    isResetForm.value = true;
+const handleModelUpdate = (value) => {
+    if (skipValidationOnChange.value) {
+        skipValidationOnChange.value = false;
+    }
+
+    emit('update:modelValue', value);
+
+    if (!props.skipValidate) {
+        validateValue(value);
+    }
+};
+
+const resetField = (options = {}) => {
+    const skipValidate = options.skipValidate !== false;
+
+    if (skipValidate) {
+        skipValidationOnChange.value = true;
+    }
+
+    errors.value = {};
+
     const type = localField.value.type;
     if (type === 'Checkbox' || type === 'Switch') {
         emit('update:modelValue', false);
@@ -61,9 +83,14 @@ const resetField = () => {
     }
 };
 
+const clearErrors = () => {
+    errors.value = {};
+};
+
 defineExpose({
     validate: validateField,
     resetField,
+    clearErrors,
     errors,
 });
 </script>
@@ -90,7 +117,7 @@ defineExpose({
             :field="localField"
             :model-value="modelValue"
             :disabled="disabled"
-            @update:model-value="emit('update:modelValue', $event)"
+            @update:model-value="handleModelUpdate"
             @focus="emit('focus')"
             @enter="emit('enter')"
         />

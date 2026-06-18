@@ -15,7 +15,7 @@ class User extends Authenticatable
     use HasApiTokens, HasFactory, Notifiable;
 
     protected $fillable = [
-        'name', 'email', 'password', 'role',
+        'name', 'email', 'password', 'role', 'is_approved', 'approved_at',
         'hp', 'xp', 'level', 'streak_count', 'streak_last_date',
         'shield_count', 'debt_count',
     ];
@@ -26,6 +26,8 @@ class User extends Authenticatable
     {
         return [
             'email_verified_at' => 'datetime',
+            'approved_at' => 'datetime',
+            'is_approved' => 'boolean',
             'password' => 'hashed',
             'streak_last_date' => 'date',
         ];
@@ -34,6 +36,16 @@ class User extends Authenticatable
     public function isAdmin(): bool
     {
         return $this->role === 'admin';
+    }
+
+    public function isApproved(): bool
+    {
+        return $this->is_approved === true;
+    }
+
+    public function isPendingApproval(): bool
+    {
+        return ! $this->isApproved();
     }
 
     public function categories(): HasMany

@@ -24,6 +24,7 @@ const chartDatasets = computed(() => [{
     <Head title="Admin - Analytics" />
 
     <PageHeader
+        size="wide"
         title="Analytics"
         :breadcrumbs="[
             { label: 'Admin', href: route('admin.users') },

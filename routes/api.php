@@ -8,7 +8,7 @@ use Illuminate\Support\Facades\Route;
 
 Route::post('login', [AuthController::class, 'login'])->name('api.login');
 
-Route::middleware('auth:sanctum')->group(function () {
+Route::middleware(['auth:sanctum', 'approved'])->group(function () {
     Route::post('logout', [AuthController::class, 'logout'])->name('api.logout');
     Route::get('me', [AuthController::class, 'me'])->name('api.me');
 
@@ -21,6 +21,7 @@ Route::middleware('auth:sanctum')->group(function () {
     Route::delete('tasks/{task}', [TaskTemplateController::class, 'destroy'])->name('api.tasks.destroy');
     Route::patch('tasks/{task}/toggle', [TaskTemplateController::class, 'toggle'])->name('api.tasks.toggle');
 
+    Route::post('today/quick-task', [TodayController::class, 'quickTask'])->name('api.today.quick_task');
     Route::patch('today/{instance}/done', [TodayController::class, 'done'])->name('api.today.done');
     Route::patch('today/{instance}/skip', [TodayController::class, 'skip'])->name('api.today.skip');
     Route::patch('today/{instance}/undo', [TodayController::class, 'undo'])->name('api.today.undo');

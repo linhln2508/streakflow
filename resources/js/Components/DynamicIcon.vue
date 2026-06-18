@@ -1,12 +1,15 @@
 <script setup>
 import { computed } from 'vue';
 import {
+    AlertCircle,
     Briefcase,
     CalendarCheck,
     Check,
     CheckCircle2,
     ChevronDown,
     ChevronRight,
+    ChevronUp,
+    Clock,
     Crown,
     Dumbbell,
     Flame,
@@ -33,12 +36,15 @@ import {
 } from '@lucide/vue';
 
 const iconMap = {
+    AlertCircle,
     Briefcase,
     CalendarCheck,
     Check,
     CheckCircle2,
     ChevronDown,
     ChevronRight,
+    ChevronUp,
+    Clock,
     Crown,
     Dumbbell,
     Flame,

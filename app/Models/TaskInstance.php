@@ -39,4 +39,29 @@ class TaskInstance extends Model
     {
         return in_array($this->status, ['pending', 'done', 'skipped']);
     }
+
+    public function isOverdue(?\Carbon\Carbon $now = null): bool
+    {
+        if ($this->status !== 'pending') {
+            return false;
+        }
+
+        $now = $now ?? now();
+
+        if ($this->scheduled_date->toDateString() < $now->toDateString()) {
+            return true;
+        }
+
+        $dueTime = $this->template?->due_time;
+
+        if (! $dueTime) {
+            return false;
+        }
+
+        $time = strlen((string) $dueTime) > 5
+            ? substr((string) $dueTime, 0, 5)
+            : (string) $dueTime;
+
+        return $now->gt(\Carbon\Carbon::parse($this->scheduled_date->toDateString().' '.$time));
+    }
 }

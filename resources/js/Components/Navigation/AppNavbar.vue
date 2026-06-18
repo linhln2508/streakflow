@@ -1,15 +1,17 @@
 <script setup>
-import { ref } from 'vue';
+import { computed, ref } from 'vue';
 import { Link, router, usePage } from '@inertiajs/vue3';
+import AppContainer from '@/Components/Layout/AppContainer.vue';
 import { mainNavItems } from '@/constants/navigation';
 import { useApi, unwrapApiData } from '@/composables/useApi';
 import UserStatsBar from '@/Components/Navigation/UserStatsBar.vue';
 import { APP_NAME_SHORT } from '@/constants/brand';
 
 const showingMobileMenu = ref(false);
-const user = usePage().props.auth.user;
-const isAdmin = user?.role === 'admin';
-const navItems = mainNavItems(isAdmin);
+const page = usePage();
+const user = computed(() => page.props.auth.user);
+const isAdmin = computed(() => user.value?.role === 'admin');
+const navItems = computed(() => mainNavItems(isAdmin.value, page.url, page.props.unclosedDaysCount ?? 0));
 
 const logout = async () => {
     const response = await useApi(route('web_api.auth.logout')).post();
@@ -19,7 +21,7 @@ const logout = async () => {
 
 <template>
     <nav class="glass-nav sticky top-0 z-40">
-        <div class="mx-auto max-w-6xl px-4 sm:px-6 lg:px-8">
+        <AppContainer>
             <div class="flex h-[3.75rem] items-center justify-between">
                 <div class="flex min-w-0 items-center gap-6">
                     <Link :href="route('dashboard')" class="group flex shrink-0 items-center gap-2.5">
@@ -40,6 +42,13 @@ const logout = async () => {
                         >
                             <DynamicIcon :name="item.icon" size="15" />
                             {{ item.label }}
+                            <Badge
+                                v-if="item.badge"
+                                variant="destructive"
+                                class="h-5 min-w-5 justify-center rounded-full px-1.5 text-[10px]"
+                            >
+                                {{ item.badge }}
+                            </Badge>
                         </Link>
                     </div>
                 </div>
@@ -73,7 +82,7 @@ const logout = async () => {
                     <DynamicIcon :name="showingMobileMenu ? 'X' : 'Menu'" size="20" />
                 </Button>
             </div>
-        </div>
+        </AppContainer>
 
         <div v-show="showingMobileMenu" class="border-t border-border/60 bg-card/95 backdrop-blur-xl md:hidden">
             <div class="space-y-0.5 px-3 py-3">
@@ -87,6 +96,13 @@ const logout = async () => {
                 >
                     <DynamicIcon :name="item.icon" size="16" />
                     {{ item.label }}
+                    <Badge
+                        v-if="item.badge"
+                        variant="destructive"
+                        class="ml-auto h-5 min-w-5 justify-center rounded-full px-1.5 text-[10px]"
+                    >
+                        {{ item.badge }}
+                    </Badge>
                 </Link>
             </div>
             <div class="border-t border-border/60 px-4 py-4">

@@ -82,4 +82,10 @@ export default {
     },
 
     plugins: [forms, animate],
+
+    safelist: [
+        'app-container',
+        'app-container--narrow',
+        'app-container--wide',
+    ],
 };

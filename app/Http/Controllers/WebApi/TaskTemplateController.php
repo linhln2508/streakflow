@@ -2,9 +2,11 @@
 
 namespace App\Http\Controllers\WebApi;
 
+use App\Actions\GenerateDailyTaskInstancesAction;
 use App\Http\Controllers\Controller;
 use App\Http\Controllers\WebApi\Concerns\RespondsWithJsonApi;
 use App\Models\TaskTemplate;
+use Carbon\Carbon;
 use Illuminate\Http\Request;
 
 class TaskTemplateController extends Controller
@@ -23,6 +25,8 @@ class TaskTemplateController extends Controller
             'user_id' => $request->user()->id,
         ]);
 
+        $this->syncTodayInstances($request);
+
         return $this->jsonSuccess($template->load('category'), __('tasks.created'));
     }
 
@@ -36,6 +40,8 @@ class TaskTemplateController extends Controller
         }
 
         $task->update($validated);
+
+        $this->syncTodayInstances($request);
 
         return $this->jsonSuccess($task->fresh()->load('category'), __('tasks.updated'));
     }
@@ -53,6 +59,10 @@ class TaskTemplateController extends Controller
         $this->authorizeTemplate($request, $task);
         $task->update(['is_active' => !$task->is_active]);
 
+        if ($task->fresh()->is_active) {
+            $this->syncTodayInstances($request);
+        }
+
         return $this->jsonSuccess($task->fresh(), __('tasks.toggled'));
     }
 
@@ -68,6 +78,7 @@ class TaskTemplateController extends Controller
             'start_date' => 'required|date',
             'end_date' => 'nullable|date|after_or_equal:start_date',
             'sort_order' => 'integer|min:0',
+            'due_time' => 'nullable|date_format:H:i',
         ]);
 
         if ($validator->fails()) {
@@ -112,5 +123,13 @@ class TaskTemplateController extends Controller
         if ($task->user_id !== $request->user()->id) {
             abort(403);
         }
+    }
+
+    protected function syncTodayInstances(Request $request): void
+    {
+        app(GenerateDailyTaskInstancesAction::class)->execute(
+            Carbon::today(),
+            $request->user()->id,
+        );
     }
 }

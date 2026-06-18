@@ -46,14 +46,24 @@ Thêm vào crontab:
 
 Scheduled commands:
 - `00:05` — `linhtinh:generate-tasks` — Tạo task instances cho ngày mới
-- `00:10` — `linhtinh:auto-close` — Tự chốt ngày hôm qua cho users chưa chốt
 
-## Tài khoản demo
+Chốt ngày do user thực hiện thủ công trên trang **Hôm nay** (`/dashboard`) — chuyển ngày bằng thanh phía trên khi còn ngày chưa chốt.
 
-| Email | Password | Role |
-|-------|----------|------|
-| admin@linhtinh.test | password | admin |
-| user@linhtinh.test | password | user |
+## Tài khoản admin
+
+Cấu hình trong `.env` (chạy `php artisan db:seed` để tạo/cập nhật):
+
+```
+ADMIN_NAME=Admin
+ADMIN_EMAIL=admin@example.com
+ADMIN_PASSWORD=your-secure-password
+```
+
+| Biến | Mô tả |
+|------|--------|
+| `ADMIN_NAME` | Tên hiển thị (mặc định: Admin) |
+| `ADMIN_EMAIL` | Email đăng nhập admin |
+| `ADMIN_PASSWORD` | Mật khẩu admin (bắt buộc để seed) |
 
 ## Cấu trúc & quy ước
 
@@ -74,7 +84,7 @@ resources/js/
 │   ├── Navigation/            → AppNavbar, UserStatsBar, ReportsNav
 │   ├── Form/                  → Field + Input/* (schema-driven)
 │   └── ui/                    → shadcn primitives
-├── constants/navigation.js    → Menu + demo accounts
+├── constants/navigation.js    → Menu navigation
 ├── constants/brand.js         → APP_NAME, APP_NAME_SHORT
 ├── composables/useApi.js
 └── Pages/                     → Chỉ nội dung trang (không bọc layout)

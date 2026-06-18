@@ -10,7 +10,7 @@ class TaskTemplate extends Model
 {
     protected $fillable = [
         'user_id', 'category_id', 'title', 'description', 'priority',
-        'recurrence_type', 'recurrence_config', 'start_date', 'end_date',
+        'recurrence_type', 'recurrence_config', 'start_date', 'end_date', 'due_time',
         'is_active', 'sort_order',
     ];
 

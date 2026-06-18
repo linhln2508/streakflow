@@ -2,6 +2,7 @@
 
 namespace App\Http\Middleware;
 
+use App\Services\UnclosedDaysService;
 use Illuminate\Http\Request;
 use Inertia\Middleware;
 
@@ -52,6 +53,9 @@ class HandleInertiaRequests extends Middleware
                 'error' => fn () => $request->session()->get('error'),
                 'closeResult' => fn () => $request->session()->get('closeResult'),
             ],
+            'unclosedDaysCount' => fn () => $user
+                ? app(UnclosedDaysService::class)->countForUser($user->id)
+                : 0,
         ];
     }
 }

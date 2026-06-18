@@ -9,4 +9,3 @@ Artisan::command('inspire', function () {
 })->purpose('Display an inspiring quote');
 
 Schedule::command('linhtinh:generate-tasks')->dailyAt('00:05');
-Schedule::command('linhtinh:auto-close')->dailyAt('00:10');

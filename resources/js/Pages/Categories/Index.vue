@@ -80,7 +80,7 @@ const openCreate = () => {
 <template>
     <Head title="Danh mục" />
 
-    <PageHeader title="Danh mục" description="Nhóm task theo chủ đề với màu và icon">
+    <PageHeader size="narrow" title="Danh mục" description="Nhóm task theo chủ đề với màu và icon">
         <template #actions>
             <Button @click="openCreate">
                 <DynamicIcon name="Plus" class="mr-1" />

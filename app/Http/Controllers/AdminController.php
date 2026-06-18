@@ -26,11 +26,20 @@ class AdminController extends Controller
             $query->where('role', $request->role);
         }
 
+        if ($request->filled('approval')) {
+            if ($request->approval === 'pending') {
+                $query->where('is_approved', false);
+            } elseif ($request->approval === 'approved') {
+                $query->where('is_approved', true);
+            }
+        }
+
         $users = $query->orderByDesc('created_at')->paginate(20)->withQueryString();
 
         return Inertia::render('Admin/Users', [
             'users' => $users,
-            'filters' => $request->only(['search', 'role']),
+            'filters' => $request->only(['search', 'role', 'approval']),
+            'pendingCount' => User::where('is_approved', false)->where('role', '!=', 'admin')->count(),
         ]);
     }
 
@@ -51,6 +60,7 @@ class AdminController extends Controller
     {
         $stats = [
             'total_users' => User::count(),
+            'pending_users' => User::where('is_approved', false)->where('role', '!=', 'admin')->count(),
             'total_instances' => TaskInstance::count(),
             'total_summaries' => DailySummary::count(),
             'active_users_7d' => DailySummary::where('date', '>=', now()->subDays(7))

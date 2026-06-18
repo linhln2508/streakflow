@@ -30,6 +30,10 @@ class AuthController extends Controller
             return $this->jsonFail(__('auth.failed'), 401);
         }
 
+        if (! $user->isApproved()) {
+            return $this->jsonFail(__('auth.not_approved'), 403);
+        }
+
         $token = $user->createToken($request->device_name)->plainTextToken;
 
         return $this->jsonSuccess([

@@ -2,9 +2,12 @@
 
 namespace App\Http\Controllers;
 
+use App\Actions\GenerateDailyTaskInstancesAction;
 use App\Models\DailySummary;
 use App\Models\TaskInstance;
+use App\Services\DayViewService;
 use App\Services\GamificationService;
+use App\Services\UnclosedDaysService;
 use Carbon\Carbon;
 use Illuminate\Http\Request;
 use Inertia\Inertia;
@@ -13,46 +16,64 @@ class DashboardController extends Controller
 {
     public function __construct(
         protected GamificationService $gamification,
+        protected UnclosedDaysService $unclosedDays,
+        protected DayViewService $dayView,
     ) {}
 
     public function index(Request $request)
     {
         $user = $request->user();
-        $today = Carbon::today()->toDateString();
+        $today = Carbon::today();
+        $todayString = $today->toDateString();
 
-        $isDayClosed = DailySummary::where('user_id', $user->id)
-            ->where('date', $today)
+        app(GenerateDailyTaskInstancesAction::class)->execute($today, $user->id);
+
+        $unclosedDays = $this->unclosedDays->forUser($user->id)->values();
+        $selectedDate = $this->resolveSelectedDate($request, $unclosedDays, $today);
+
+        if ($this->unclosedDays->isClosed($user->id, $selectedDate->toDateString())) {
+            return redirect()->route('reports.day', $selectedDate->toDateString());
+        }
+
+        $hasTasks = TaskInstance::where('user_id', $user->id)
+            ->whereDate('scheduled_date', $selectedDate)
             ->exists();
 
-        $instances = TaskInstance::with(['template.category'])
-            ->where('user_id', $user->id)
-            ->where('scheduled_date', $today)
-            ->orderBy('id')
-            ->get();
+        if (!$hasTasks && !$selectedDate->isToday()) {
+            return redirect()->route('dashboard');
+        }
 
-        $total = $instances->count();
-        $done = $instances->where('status', 'done')->count();
-        $skipped = $instances->where('status', 'skipped')->count();
-        $pending = $instances->where('status', 'pending')->count();
-        $skipQuota = $this->gamification->calculateSkipQuota($total);
-        $usedSkips = $skipped;
-        $remainingSkips = max(0, $skipQuota - $usedSkips - $pending);
-        $predictedHpChange = $this->gamification->predictHpChange($total, $done, $skipped, $pending);
+        $instances = $this->dayView->loadInstances($user->id, $selectedDate);
+        $isDayClosed = false;
 
         return Inertia::render('Dashboard', [
             'instances' => $instances,
-            'stats' => [
-                'total' => $total,
-                'done' => $done,
-                'skipped' => $skipped,
-                'pending' => $pending,
-                'skip_quota' => $skipQuota,
-                'remaining_skips' => $remainingSkips,
-                'predicted_hp_change' => $predictedHpChange,
-            ],
+            'stats' => $this->dayView->buildStats($instances),
             'isDayClosed' => $isDayClosed,
-            'today' => $today,
-            'xpToNextLevel' => $this->gamification->xpToNextLevel($user->xp, $user->level),
+            'selectedDate' => $selectedDate->toDateString(),
+            'today' => $todayString,
+            'isToday' => $selectedDate->isToday(),
+            'unclosedDays' => $unclosedDays,
+            'xpToNextLevel' => $this->gamification->xpToNextLevel($user->xp ?? 0, $user->level ?? 1),
         ]);
+    }
+
+    protected function resolveSelectedDate(Request $request, $unclosedDays, Carbon $today): Carbon
+    {
+        if ($request->filled('date')) {
+            $date = Carbon::parse($request->query('date'));
+
+            if ($date->isFuture()) {
+                return $today;
+            }
+
+            return $date;
+        }
+
+        $oldestPast = $unclosedDays->first(fn ($day) => !$day['is_today']);
+
+        return $oldestPast
+            ? Carbon::parse($oldestPast['date'])
+            : $today;
     }
 }

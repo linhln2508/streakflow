@@ -27,7 +27,7 @@ const submit = async () => {
 
     try {
         const response = await useApi(route('web_api.auth.register')).post({ ...form });
-        router.visit(unwrapApiData(response)?.redirect ?? route('dashboard'));
+        router.visit(unwrapApiData(response)?.redirect ?? route('login'));
     } finally {
         processing.value = false;
         form.password = '';
@@ -44,7 +44,7 @@ const submit = async () => {
             <DynamicIcon name="UserPlus" size="26" class="text-primary" />
         </div>
         <h1 class="text-2xl font-bold tracking-tight">Tạo tài khoản</h1>
-        <p class="mt-1.5 text-sm text-muted-foreground">Bắt đầu xây dựng thói quen hôm nay</p>
+        <p class="mt-1.5 text-sm text-muted-foreground">Sau khi đăng ký, admin sẽ duyệt tài khoản trước khi bạn sử dụng hệ thống</p>
     </div>
 
     <form @submit.prevent="submit" class="space-y-4">

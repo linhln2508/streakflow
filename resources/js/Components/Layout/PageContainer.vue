@@ -1,24 +1,22 @@
 <script setup>
+import AppContainer from '@/Components/Layout/AppContainer.vue';
 import { cn } from '@/lib/utils';
 
 defineProps({
     size: {
         type: String,
         default: 'default',
-        validator: (v) => ['default', 'narrow', 'wide'].includes(v),
+        validator: (value) => ['default', 'narrow', 'wide'].includes(value),
     },
-    class: { type: String, default: '' },
+    class: {
+        type: String,
+        default: '',
+    },
 });
-
-const sizeClass = {
-    default: 'max-w-6xl',
-    narrow: 'max-w-2xl',
-    wide: 'max-w-7xl',
-};
 </script>
 
 <template>
-    <div :class="cn('mx-auto w-full px-4 py-8 sm:px-8', sizeClass[size], $props.class)">
+    <AppContainer :size="size" :class="cn('py-8', $props.class)">
         <slot />
-    </div>
+    </AppContainer>
 </template>

@@ -13,7 +13,7 @@ defineProps({
 <template>
     <Head title="Hồ sơ" />
 
-    <PageHeader title="Hồ sơ" description="Quản lý thông tin tài khoản và mật khẩu" />
+    <PageHeader size="narrow" title="Hồ sơ" description="Quản lý thông tin tài khoản và mật khẩu" />
 
     <PageContainer size="narrow" class="space-y-6">
         <PageSection title="Thông tin cá nhân">

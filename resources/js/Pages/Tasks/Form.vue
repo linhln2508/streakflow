@@ -23,6 +23,7 @@ const form = reactive({
     recurrence_config: { ...(props.template?.recurrence_config ?? {}) },
     start_date: props.template?.start_date?.substring(0, 10) ?? new Date().toISOString().substring(0, 10),
     end_date: props.template?.end_date?.substring(0, 10) ?? '',
+    due_time: props.template?.due_time ? String(props.template.due_time).substring(0, 5) : '',
     sort_order: props.template?.sort_order ?? 0,
 });
 
@@ -78,7 +79,7 @@ const submit = async () => {
         return;
     }
 
-    const payload = { ...form, category_id: form.category_id || null, end_date: form.end_date || null };
+    const payload = { ...form, category_id: form.category_id || null, end_date: form.end_date || null, due_time: form.due_time || null };
 
     if (isEdit.value) {
         await useApi(route('web_api.tasks.update', props.template.id)).put(payload);
@@ -94,6 +95,7 @@ const submit = async () => {
     <Head :title="isEdit ? 'Sửa task' : 'Tạo task'" />
 
     <PageHeader
+        size="narrow"
         :title="isEdit ? 'Sửa task' : 'Tạo task mới'"
         :breadcrumbs="[
             { label: 'Tasks', href: route('tasks.index') },
@@ -127,6 +129,12 @@ const submit = async () => {
                         <div class="grid grid-cols-2 gap-4">
                             <Field ref="startDateField" v-model="form.start_date" :field="{ label: 'Ngày bắt đầu', type: 'Date', validate: 'required|date' }" />
                             <Field v-model="form.end_date" :field="{ label: 'Ngày kết thúc (tùy chọn)', type: 'Date' }" />
+                        </div>
+
+                        <div class="space-y-2">
+                            <Label>Giờ hạn (tùy chọn)</Label>
+                            <Input v-model="form.due_time" type="time" class="rounded-xl" />
+                            <p class="text-xs text-muted-foreground">Nếu quá giờ hạn mà chưa hoàn thành, task sẽ hiển thị cảnh báo đỏ trên trang Hôm nay.</p>
                         </div>
 
                         <Button type="submit">

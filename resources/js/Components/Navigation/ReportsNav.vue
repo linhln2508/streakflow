@@ -1,17 +1,35 @@
 <script setup>
 import { computed } from 'vue';
-import { Link } from '@inertiajs/vue3';
+import { Link, usePage } from '@inertiajs/vue3';
+import { normalizePath } from '@/constants/layout';
 
+const page = usePage();
 const now = new Date();
 const year = now.getFullYear();
 const month = now.getMonth() + 1;
 const week = computed(() => Math.ceil((now - new Date(year, 0, 1)) / 86400000 / 7));
 
-const tabs = computed(() => [
-    { label: 'Tổng quan', href: route('reports.overview'), active: route().current('reports.overview') },
-    { label: 'Tuần', href: route('reports.week', { year, week: week.value }), active: route().current('reports.week') },
-    { label: 'Tháng', href: route('reports.month', { year, month }), active: route().current('reports.month') },
-]);
+const tabs = computed(() => {
+    const current = normalizePath(page.url);
+
+    return [
+        {
+            label: 'Tổng quan',
+            href: route('reports.overview'),
+            active: current === normalizePath(route('reports.overview')),
+        },
+        {
+            label: 'Tuần',
+            href: route('reports.week', { year, week: week.value }),
+            active: current.startsWith('/reports/week'),
+        },
+        {
+            label: 'Tháng',
+            href: route('reports.month', { year, month }),
+            active: current.startsWith('/reports/month'),
+        },
+    ];
+});
 </script>
 
 <template>

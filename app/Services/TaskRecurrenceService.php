@@ -13,11 +13,11 @@ class TaskRecurrenceService
             return false;
         }
 
-        if ($date->lt($template->start_date)) {
+        if ($date->toDateString() < $template->start_date->toDateString()) {
             return false;
         }
 
-        if ($template->end_date && $date->gt($template->end_date)) {
+        if ($template->end_date && $date->toDateString() > $template->end_date->toDateString()) {
             return false;
         }
 

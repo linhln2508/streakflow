@@ -1,12 +1,10 @@
 <script setup>
 import { router } from '@inertiajs/vue3';
 import { reactive, ref } from 'vue';
-import { demoAccounts } from '@/constants/navigation';
 import { useApi, unwrapApiData } from '@/composables/useApi';
 import { useFormFields } from '@/composables/useFormFields';
 
 defineProps({
-    canResetPassword: { type: Boolean },
     status: { type: String },
 });
 
@@ -21,11 +19,6 @@ const form = reactive({
     remember: false,
 });
 
-const fillDemo = (email) => {
-    form.email = email;
-    form.password = 'password';
-};
-
 const submit = async () => {
     if (!validateAll([emailField.value, passwordField.value]).isValid) {
         return;
@@ -38,7 +31,6 @@ const submit = async () => {
         router.visit(unwrapApiData(response)?.redirect ?? route('dashboard'));
     } finally {
         processing.value = false;
-        form.password = '';
     }
 };
 </script>
@@ -62,15 +54,8 @@ const submit = async () => {
         <Field ref="emailField" v-model="form.email" :field="{ label: 'Email', type: 'Email', validate: 'required|email' }" />
         <Field ref="passwordField" v-model="form.password" :field="{ label: 'Mật khẩu', type: 'Password', validate: 'required' }" />
 
-        <div class="flex items-center justify-between pt-1">
+        <div class="pt-1">
             <Field v-model="form.remember" :field="{ type: 'Checkbox', checkboxLabel: 'Ghi nhớ đăng nhập' }" />
-            <Link
-                v-if="canResetPassword"
-                :href="route('password.request')"
-                class="text-xs font-medium text-muted-foreground hover:text-primary"
-            >
-                Quên mật khẩu?
-            </Link>
         </div>
 
         <Button
@@ -82,36 +67,6 @@ const submit = async () => {
             {{ processing ? 'Đang đăng nhập...' : 'Đăng nhập' }}
         </Button>
     </form>
-
-    <div class="relative my-8">
-        <div class="absolute inset-0 flex items-center">
-            <div class="w-full border-t border-border" />
-        </div>
-        <div class="relative flex justify-center text-xs uppercase">
-            <span class="bg-background px-3 text-muted-foreground">Hoặc dùng demo</span>
-        </div>
-    </div>
-
-    <div class="grid grid-cols-2 gap-3">
-        <button
-            v-for="acc in demoAccounts"
-            :key="acc.email"
-            type="button"
-            class="group flex flex-col items-start gap-1 rounded-xl border border-border bg-card p-3.5 text-left transition-all hover:border-primary/40 hover:bg-accent hover:shadow-sm"
-            @click="fillDemo(acc.email)"
-        >
-            <span class="flex items-center gap-1.5 text-sm font-semibold text-foreground">
-                <DynamicIcon
-                    :name="acc.email.includes('admin') ? 'Shield' : 'User'"
-                    size="14"
-                    class="text-primary"
-                />
-                {{ acc.label }}
-            </span>
-            <span class="truncate text-[11px] text-muted-foreground">{{ acc.email }}</span>
-        </button>
-    </div>
-    <p class="mt-2 text-center text-[11px] text-muted-foreground">Mật khẩu: <code class="rounded bg-muted px-1 py-0.5 font-mono">password</code></p>
 
     <p class="mt-8 text-center text-sm text-muted-foreground">
         Chưa có tài khoản?

@@ -13,12 +13,15 @@ class GenerateDailyTaskInstancesAction
         protected TaskRecurrenceService $recurrenceService,
     ) {}
 
-    public function execute(?Carbon $date = null): int
+    public function execute(?Carbon $date = null, ?int $userId = null): int
     {
         $date = $date ?? Carbon::today();
         $created = 0;
 
-        $templates = TaskTemplate::where('is_active', true)->get();
+        $templates = TaskTemplate::query()
+            ->where('is_active', true)
+            ->when($userId, fn ($query) => $query->where('user_id', $userId))
+            ->get();
 
         foreach ($templates as $template) {
             if (!$this->recurrenceService->shouldGenerateForDate($template, $date)) {
@@ -26,7 +29,7 @@ class GenerateDailyTaskInstancesAction
             }
 
             $exists = TaskInstance::where('task_template_id', $template->id)
-                ->where('scheduled_date', $date->toDateString())
+                ->whereDate('scheduled_date', $date)
                 ->exists();
 
             if ($exists) {

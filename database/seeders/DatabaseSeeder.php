@@ -26,26 +26,21 @@ class DatabaseSeeder extends Seeder
             Badge::updateOrCreate(['key' => $badge['key']], $badge);
         }
 
-        User::updateOrCreate(
-            ['email' => 'admin@linhtinh.test'],
-            [
-                'name' => 'Admin',
-                'password' => Hash::make('password'),
-                'role' => 'admin',
-                'email_verified_at' => now(),
-            ]
-        );
+        $email = config('admin.email');
+        $password = config('admin.password');
 
-        User::updateOrCreate(
-            ['email' => 'user@linhtinh.test'],
-            [
-                'name' => 'Demo User',
-                'password' => Hash::make('password'),
-                'role' => 'user',
-                'email_verified_at' => now(),
-            ]
-        );
-
-        $this->call(DemoDataSeeder::class);
+        if ($email && $password) {
+            User::updateOrCreate(
+                ['email' => $email],
+                [
+                    'name' => config('admin.name'),
+                    'password' => Hash::make($password),
+                    'role' => 'admin',
+                    'email_verified_at' => now(),
+                    'is_approved' => true,
+                    'approved_at' => now(),
+                ]
+            );
+        }
     }
 }

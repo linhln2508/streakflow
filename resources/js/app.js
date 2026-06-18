@@ -1,11 +1,12 @@
 import '../css/app.css';
+import 'vue-sonner/style.css';
 import './bootstrap';
 
 import AppLayout from '@/Layouts/AppLayout.vue';
 import AuthLayout from '@/Layouts/AuthLayout.vue';
-import { createInertiaApp } from '@inertiajs/vue3';
+import { createInertiaApp, Head, Link } from '@inertiajs/vue3';
 import { resolvePageComponent } from 'laravel-vite-plugin/inertia-helpers';
-import { createApp, h } from 'vue';
+import { createApp, h, Fragment } from 'vue';
 import { Toaster } from 'vue-sonner';
 import { ZiggyVue } from '../../vendor/tightenco/ziggy';
 
@@ -28,12 +29,23 @@ createInertiaApp({
         return page;
     },
     setup({ el, App, props, plugin }) {
-        return createApp({
-            render: () => h('div', [
+        const app = createApp({
+            render: () => h(Fragment, null, [
                 h(App, props),
-                h(Toaster, { position: 'top-right', richColors: true }),
+                h(Toaster, {
+                    position: 'top-right',
+                    richColors: true,
+                    closeButton: true,
+                    expand: true,
+                    offset: '1rem',
+                }),
             ]),
-        })
+        });
+
+        app.component('Head', Head);
+        app.component('Link', Link);
+
+        return app
             .use(plugin)
             .use(ZiggyVue)
             .mount(el);

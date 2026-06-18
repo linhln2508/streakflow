@@ -18,8 +18,11 @@ Route::prefix('web_api')->group(function () {
     require __DIR__.'/web_api.php';
 });
 
-Route::middleware(['auth', 'verified'])->group(function () {
+Route::middleware(['auth', 'approved', 'verified'])->group(function () {
     Route::get('/dashboard', [DashboardController::class, 'index'])->name('dashboard');
+
+    Route::redirect('/close-days', '/dashboard');
+    Route::get('/close-days/{date}', fn (string $date) => redirect()->route('dashboard', ['date' => $date]));
 
     Route::get('/tasks', [TaskTemplateController::class, 'index'])->name('tasks.index');
     Route::get('/tasks/create', [TaskTemplateController::class, 'create'])->name('tasks.create');
