@@ -1,7 +1,10 @@
 <script setup>
+import AuthLayout from '@/Layouts/AuthLayout.vue';
 import { computed, ref } from 'vue';
 import { router } from '@inertiajs/vue3';
 import { useApi, unwrapApiData } from '@/composables/useApi';
+
+defineOptions({ layout: AuthLayout });
 
 const props = defineProps({ status: { type: String } });
 
@@ -30,28 +33,21 @@ const verificationLinkSent = computed(() =>
 </script>
 
 <template>
-    <GuestLayout>
-        <Head title="Xác minh email" />
+    <Head title="Xác minh email" />
 
-        <p class="mb-4 text-sm text-muted-foreground">
-            Cảm ơn bạn đã đăng ký! Vui lòng xác minh email bằng link chúng tôi đã gửi. Nếu chưa nhận được, bạn có thể yêu cầu gửi lại.
+    <div class="mb-6">
+        <h1 class="text-2xl font-bold">Xác minh email</h1>
+        <p class="mt-1 text-sm text-muted-foreground">
+            Kiểm tra hộp thư hoặc yêu cầu gửi lại link xác minh.
         </p>
+    </div>
 
-        <div v-if="verificationLinkSent" class="mb-4 text-sm font-medium text-green-600">
-            Link xác minh mới đã được gửi đến email của bạn.
-        </div>
+    <div v-if="verificationLinkSent" class="mb-4 text-sm font-medium text-green-600">
+        Link xác minh mới đã được gửi đến email của bạn.
+    </div>
 
-        <form @submit.prevent="submit">
-            <div class="flex items-center justify-between gap-3">
-                <Button type="submit" :disabled="processing">Gửi lại email xác minh</Button>
-                <button
-                    type="button"
-                    class="text-sm text-muted-foreground underline hover:text-foreground"
-                    @click="logout"
-                >
-                    Đăng xuất
-                </button>
-            </div>
-        </form>
-    </GuestLayout>
+    <form @submit.prevent="submit" class="space-y-4">
+        <Button type="submit" :disabled="processing" class="w-full">Gửi lại email xác minh</Button>
+        <Button type="button" variant="outline" class="w-full" @click="logout">Đăng xuất</Button>
+    </form>
 </template>

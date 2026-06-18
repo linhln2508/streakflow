@@ -6,6 +6,7 @@ import {
     Check,
     CheckCircle2,
     ChevronDown,
+    ChevronRight,
     Crown,
     Dumbbell,
     Flame,
@@ -26,6 +27,7 @@ import {
     Trash2,
     Undo2,
     User,
+    UserPlus,
     X,
     Zap,
 } from '@lucide/vue';
@@ -36,6 +38,7 @@ const iconMap = {
     Check,
     CheckCircle2,
     ChevronDown,
+    ChevronRight,
     Crown,
     Dumbbell,
     Flame,
@@ -56,6 +59,7 @@ const iconMap = {
     Trash2,
     Undo2,
     User,
+    UserPlus,
     X,
     Zap,
 };

@@ -46,13 +46,7 @@ const resendVerification = async () => {
 </script>
 
 <template>
-    <section>
-        <header>
-            <h2 class="text-lg font-semibold">Thông tin hồ sơ</h2>
-            <p class="mt-1 text-sm text-muted-foreground">Cập nhật tên và email của bạn.</p>
-        </header>
-
-        <form @submit.prevent="submit" class="mt-6 space-y-4">
+    <form @submit.prevent="submit" class="space-y-4">
             <Field ref="nameField" v-model="form.name" :field="{ label: 'Tên', type: 'Text', validate: 'required|string|max:255' }" />
             <Field ref="emailField" v-model="form.email" :field="{ label: 'Email', type: 'Email', validate: 'required|email' }" />
 
@@ -74,6 +68,5 @@ const resendVerification = async () => {
                     <p v-if="recentlySuccessful" class="text-sm text-muted-foreground">Đã lưu.</p>
                 </Transition>
             </div>
-        </form>
-    </section>
+    </form>
 </template>

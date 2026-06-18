@@ -92,15 +92,18 @@ const submit = async () => {
 
 <template>
     <Head :title="isEdit ? 'Sửa task' : 'Tạo task'" />
-    <AuthenticatedLayout>
-        <template #header>
-            <h2 class="text-xl font-semibold">{{ isEdit ? 'Sửa task' : 'Tạo task mới' }}</h2>
-        </template>
 
-        <div class="py-8">
-            <Card class="mx-auto max-w-2xl">
-                <CardContent class="pt-6">
-                    <form @submit.prevent="submit" class="space-y-4">
+    <PageHeader
+        :title="isEdit ? 'Sửa task' : 'Tạo task mới'"
+        :breadcrumbs="[
+            { label: 'Tasks', href: route('tasks.index') },
+            { label: isEdit ? 'Sửa' : 'Tạo mới' },
+        ]"
+    />
+
+    <PageContainer size="narrow">
+        <PageSection>
+            <form @submit.prevent="submit" class="space-y-4">
                         <Field ref="titleField" v-model="form.title" :field="{ label: 'Tiêu đề', type: 'Text', validate: 'required|string|max:255' }" />
                         <Field v-model="form.description" :field="{ label: 'Mô tả', type: 'Textarea' }" />
 
@@ -131,8 +134,6 @@ const submit = async () => {
                             {{ isEdit ? 'Cập nhật' : 'Tạo task' }}
                         </Button>
                     </form>
-                </CardContent>
-            </Card>
-        </div>
-    </AuthenticatedLayout>
+        </PageSection>
+    </PageContainer>
 </template>

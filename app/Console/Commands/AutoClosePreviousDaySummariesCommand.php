@@ -10,7 +10,7 @@ use Illuminate\Console\Command;
 
 class AutoClosePreviousDaySummariesCommand extends Command
 {
-    protected $signature = 'streakflow:auto-close {--date= : Date to close (Y-m-d), defaults to yesterday}';
+    protected $signature = 'linhtinh:auto-close {--date= : Date to close (Y-m-d), defaults to yesterday}';
 
     protected $description = 'Auto-close daily summaries for users who did not close the previous day';
 

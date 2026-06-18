@@ -29,22 +29,23 @@ const submit = async () => {
 </script>
 
 <template>
-    <GuestLayout>
-        <Head title="Quên mật khẩu" />
+    <Head title="Quên mật khẩu" />
 
-        <p class="mb-4 text-sm text-muted-foreground">
-            Nhập email của bạn, chúng tôi sẽ gửi link đặt lại mật khẩu.
-        </p>
+    <div class="mb-6">
+        <h1 class="text-2xl font-bold">Quên mật khẩu</h1>
+        <p class="mt-1 text-sm text-muted-foreground">Nhập email để nhận link đặt lại mật khẩu</p>
+    </div>
 
-        <div v-if="status || statusMessage" class="mb-4 text-sm font-medium text-green-600">
-            {{ status || statusMessage }}
-        </div>
+    <div v-if="status || statusMessage" class="mb-4 text-sm font-medium text-green-600">
+        {{ status || statusMessage }}
+    </div>
 
-        <form @submit.prevent="submit" class="space-y-4">
-            <Field ref="emailField" v-model="form.email" :field="{ label: 'Email', type: 'Email', validate: 'required|email' }" />
-            <div class="flex justify-end">
-                <Button type="submit" :disabled="processing">Gửi link reset</Button>
-            </div>
-        </form>
-    </GuestLayout>
+    <form @submit.prevent="submit" class="space-y-4">
+        <Field ref="emailField" v-model="form.email" :field="{ label: 'Email', type: 'Email', validate: 'required|email' }" />
+        <Button type="submit" :disabled="processing" class="w-full">Gửi link reset</Button>
+    </form>
+
+    <p class="mt-4 text-center text-sm text-muted-foreground">
+        <Link :href="route('login')" class="text-primary underline">Quay lại đăng nhập</Link>
+    </p>
 </template>

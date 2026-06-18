@@ -79,55 +79,60 @@ const openCreate = () => {
 
 <template>
     <Head title="Danh mục" />
-    <AuthenticatedLayout>
-        <template #header>
-            <div class="flex items-center justify-between">
-                <h2 class="text-xl font-semibold">Danh mục</h2>
-                <Button @click="openCreate">
-                    <DynamicIcon name="Plus" class="mr-1" />
-                    Thêm
-                </Button>
-            </div>
+
+    <PageHeader title="Danh mục" description="Nhóm task theo chủ đề với màu và icon">
+        <template #actions>
+            <Button @click="openCreate">
+                <DynamicIcon name="Plus" class="mr-1" />
+                Thêm
+            </Button>
         </template>
+    </PageHeader>
 
-        <div class="py-8">
-            <div class="mx-auto max-w-2xl space-y-4 px-4">
-                <Card v-if="showForm">
-                    <CardContent class="pt-6">
-                        <form @submit.prevent="submit" class="space-y-4">
-                            <Field ref="nameField" v-model="form.name" :field="fields.name" />
-                            <Field ref="colorField" v-model="form.color" :field="fields.color">
-                                <template #label-right>
-                                    <input v-model="form.color" type="color" class="h-8 w-10 rounded border border-input" />
-                                </template>
-                            </Field>
-                            <Field ref="iconField" v-model="form.icon" :field="fields.icon" />
-                            <div class="flex gap-2">
-                                <Button type="submit">{{ editingId ? 'Cập nhật' : 'Tạo' }}</Button>
-                                <Button type="button" variant="ghost" @click="resetForm">Hủy</Button>
-                            </div>
-                        </form>
-                    </CardContent>
-                </Card>
+    <PageContainer size="narrow" class="space-y-4">
+        <PageSection v-if="showForm" :title="editingId ? 'Cập nhật danh mục' : 'Tạo danh mục'">
+            <form @submit.prevent="submit" class="space-y-4">
+                <Field ref="nameField" v-model="form.name" :field="fields.name" />
+                <Field ref="colorField" v-model="form.color" :field="fields.color">
+                    <template #label-right>
+                        <input v-model="form.color" type="color" class="h-8 w-10 rounded border border-input" />
+                    </template>
+                </Field>
+                <Field ref="iconField" v-model="form.icon" :field="fields.icon" />
+                <div class="flex gap-2">
+                    <Button type="submit">{{ editingId ? 'Cập nhật' : 'Tạo' }}</Button>
+                    <Button type="button" variant="ghost" @click="resetForm">Hủy</Button>
+                </div>
+            </form>
+        </PageSection>
 
-                <Card v-for="cat in categories" :key="cat.id">
-                    <CardContent class="flex items-center justify-between pt-6">
-                        <div class="flex items-center gap-3">
-                            <span class="h-6 w-6 rounded-full" :style="{ backgroundColor: cat.color }" />
-                            <DynamicIcon v-if="cat.icon" :name="cat.icon" size="18" />
-                            <span class="font-medium">{{ cat.name }}</span>
-                        </div>
-                        <div class="flex gap-2">
-                            <Button variant="outline" size="sm" @click="editCategory(cat)">
-                                <DynamicIcon name="Pencil" size="14" />
-                            </Button>
-                            <Button variant="destructive" size="sm" @click="deleteCategory(cat.id)">
-                                <DynamicIcon name="Trash2" size="14" />
-                            </Button>
-                        </div>
-                    </CardContent>
-                </Card>
-            </div>
-        </div>
-    </AuthenticatedLayout>
+        <Card v-for="cat in categories" :key="cat.id">
+            <CardContent class="flex items-center justify-between pt-6">
+                <div class="flex items-center gap-3">
+                    <span class="h-6 w-6 rounded-full" :style="{ backgroundColor: cat.color }" />
+                    <DynamicIcon v-if="cat.icon" :name="cat.icon" size="18" />
+                    <span class="font-medium">{{ cat.name }}</span>
+                </div>
+                <div class="flex gap-2">
+                    <Button variant="outline" size="sm" @click="editCategory(cat)">
+                        <DynamicIcon name="Pencil" size="14" />
+                    </Button>
+                    <Button variant="destructive" size="sm" @click="deleteCategory(cat.id)">
+                        <DynamicIcon name="Trash2" size="14" />
+                    </Button>
+                </div>
+            </CardContent>
+        </Card>
+
+        <PageSection v-if="categories.length === 0 && !showForm">
+            <EmptyState icon="Briefcase" title="Chưa có danh mục nào" description="Tạo danh mục để phân loại task template.">
+                <template #action>
+                    <Button @click="openCreate">
+                        <DynamicIcon name="Plus" size="14" class="mr-1" />
+                        Thêm danh mục
+                    </Button>
+                </template>
+            </EmptyState>
+        </PageSection>
+    </PageContainer>
 </template>

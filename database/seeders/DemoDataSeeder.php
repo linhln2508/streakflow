@@ -13,7 +13,7 @@ class DemoDataSeeder extends Seeder
 {
     public function run(): void
     {
-        $user = User::where('email', 'user@streakflow.test')->first();
+        $user = User::where('email', 'user@linhtinh.test')->first();
 
         if (!$user) {
             return;

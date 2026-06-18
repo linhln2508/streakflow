@@ -7,7 +7,7 @@ defineProps({
 </script>
 
 <template>
-    <div :class="cn('rounded-xl border bg-card text-card-foreground shadow', $attrs.class)">
+    <div :class="cn('rounded-2xl border border-border/50 bg-card text-card-foreground shadow-sm', $attrs.class)">
         <slot />
     </div>
 </template>

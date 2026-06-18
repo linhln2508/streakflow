@@ -1,6 +1,6 @@
-# StreakFlow
+# Linh Ta Linh Tinh
 
-Ứng dụng quản lý thói quen hàng ngày kết hợp gamification. Setup task một lần, hệ thống tự tạo task theo lịch mỗi ngày, người dùng mark done/skip rồi chủ động chốt ngày để nhận điểm.
+App cá nhân đa tính năng — task, thói quen, gamification và mở rộng thêm. Viết tắt: **Linh Tinh**.
 
 ## Tech Stack
 
@@ -41,19 +41,19 @@ php artisan queue:work
 Thêm vào crontab:
 
 ```
-* * * * * cd /path/to/streakflow && php artisan schedule:run >> /dev/null 2>&1
+* * * * * cd /path/to/linh-ta-linh-tinh && php artisan schedule:run >> /dev/null 2>&1
 ```
 
 Scheduled commands:
-- `00:05` — `streakflow:generate-tasks` — Tạo task instances cho ngày mới
-- `00:10` — `streakflow:auto-close` — Tự chốt ngày hôm qua cho users chưa chốt
+- `00:05` — `linhtinh:generate-tasks` — Tạo task instances cho ngày mới
+- `00:10` — `linhtinh:auto-close` — Tự chốt ngày hôm qua cho users chưa chốt
 
 ## Tài khoản demo
 
 | Email | Password | Role |
 |-------|----------|------|
-| admin@streakflow.test | password | admin |
-| user@streakflow.test | password | user |
+| admin@linhtinh.test | password | admin |
+| user@linhtinh.test | password | user |
 
 ## Cấu trúc & quy ước
 
@@ -65,16 +65,24 @@ routes/
 
 app/Http/Controllers/WebApi/   → JSON { success, data, message? }
 resources/js/
-├── Components/Form/Field.vue  → Input + validate
-├── Components/DynamicIcon.vue → Lucide icons
-├── composables/useApi.js      → API + sonner toast
-├── lang/validation.js         → FE validation messages
-└── utils/fieldValidation.js
+├── Layouts/
+│   ├── AppLayout.vue          → Layout mặc định (navbar + main)
+│   ├── AuthLayout.vue         → Auth pages (split-screen)
+│   └── Blank.vue              → Layout tối giản
+├── Components/
+│   ├── Layout/                → PageHeader, PageContainer, PageSection, StatCard, EmptyState
+│   ├── Navigation/            → AppNavbar, UserStatsBar, ReportsNav
+│   ├── Form/                  → Field + Input/* (schema-driven)
+│   └── ui/                    → shadcn primitives
+├── constants/navigation.js    → Menu + demo accounts
+├── constants/brand.js         → APP_NAME, APP_NAME_SHORT
+├── composables/useApi.js
+└── Pages/                     → Chỉ nội dung trang (không bọc layout)
 
 lang/vi/categories.php | tasks.php | today.php   → i18n BE (không dùng ui.php)
 ```
 
-**Quy ước FE:** `useApi(route('web_api.xxx'))` · `Field` với `validate: 'required|email'` · `<DynamicIcon name="Heart" />` · auto-import components · mutations qua `/web_api/*`
+**Quy ước FE:** Layout auto gán trong `app.js` · `PageHeader` + `PageContainer` · `useApi(route('web_api.xxx'))` · `Field` với `validate` · `<DynamicIcon />` · auto-import components
 
 **pnpm:** Dùng `pnpm install` với `.npmrc` trỏ `registry.npmmirror.com` (tránh timeout IPv6 tới registry.npmjs.org). Sync lockfile: `pnpm import`.
 

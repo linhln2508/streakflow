@@ -8,5 +8,5 @@ Artisan::command('inspire', function () {
     $this->comment(Inspiring::quote());
 })->purpose('Display an inspiring quote');
 
-Schedule::command('streakflow:generate-tasks')->dailyAt('00:05');
-Schedule::command('streakflow:auto-close')->dailyAt('00:10');
+Schedule::command('linhtinh:generate-tasks')->dailyAt('00:05');
+Schedule::command('linhtinh:auto-close')->dailyAt('00:10');

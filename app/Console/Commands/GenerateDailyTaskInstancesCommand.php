@@ -7,7 +7,7 @@ use Illuminate\Console\Command;
 
 class GenerateDailyTaskInstancesCommand extends Command
 {
-    protected $signature = 'streakflow:generate-tasks {--date= : Date to generate tasks for (Y-m-d)}';
+    protected $signature = 'linhtinh:generate-tasks {--date= : Date to generate tasks for (Y-m-d)}';
 
     protected $description = 'Generate daily task instances from active templates';
 

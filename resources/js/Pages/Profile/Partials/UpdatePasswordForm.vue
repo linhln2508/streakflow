@@ -38,13 +38,7 @@ const updatePassword = async () => {
 </script>
 
 <template>
-    <section>
-        <header>
-            <h2 class="text-lg font-semibold">Đổi mật khẩu</h2>
-            <p class="mt-1 text-sm text-muted-foreground">Dùng mật khẩu dài và ngẫu nhiên để bảo vệ tài khoản.</p>
-        </header>
-
-        <form @submit.prevent="updatePassword" class="mt-6 space-y-4">
+    <form @submit.prevent="updatePassword" class="space-y-4">
             <Field ref="currentField" v-model="form.current_password" :field="{ label: 'Mật khẩu hiện tại', type: 'Password', validate: 'required' }" />
             <Field ref="passwordField" v-model="form.password" :field="{ label: 'Mật khẩu mới', type: 'Password', validate: 'required|min:8' }" />
             <Field ref="confirmField" v-model="form.password_confirmation" :field="{ label: 'Xác nhận mật khẩu', type: 'Password', validate: 'required' }" />
@@ -55,6 +49,5 @@ const updatePassword = async () => {
                     <p v-if="recentlySuccessful" class="text-sm text-muted-foreground">Đã lưu.</p>
                 </Transition>
             </div>
-        </form>
-    </section>
+    </form>
 </template>

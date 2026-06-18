@@ -41,13 +41,10 @@ const closeModal = () => {
 </script>
 
 <template>
-    <section class="space-y-4">
-        <header>
-            <h2 class="text-lg font-semibold">Xóa tài khoản</h2>
-            <p class="mt-1 text-sm text-muted-foreground">
-                Sau khi xóa, toàn bộ dữ liệu sẽ bị xóa vĩnh viễn. Hãy chắc chắn trước khi thực hiện.
-            </p>
-        </header>
+    <div class="space-y-4">
+        <p class="text-sm text-muted-foreground">
+            Sau khi xóa, toàn bộ dữ liệu sẽ bị xóa vĩnh viễn. Hãy chắc chắn trước khi thực hiện.
+        </p>
 
         <Button variant="destructive" @click="confirmUserDeletion">Xóa tài khoản</Button>
 
@@ -66,5 +63,5 @@ const closeModal = () => {
                 </Button>
             </div>
         </Dialog>
-    </section>
+    </div>
 </template>

@@ -14,12 +14,12 @@ class ApiAuthTest extends TestCase
     public function test_user_can_login_and_create_category_via_api(): void
     {
         $user = User::factory()->create([
-            'email' => 'api@streakflow.test',
+            'email' => 'api@linhtinh.test',
             'password' => Hash::make('password'),
         ]);
 
         $login = $this->postJson('/api/login', [
-            'email' => 'api@streakflow.test',
+            'email' => 'api@linhtinh.test',
             'password' => 'password',
             'device_name' => 'phpunit',
         ]);
@@ -43,7 +43,7 @@ class ApiAuthTest extends TestCase
         $this->withToken($token)
             ->getJson('/api/me')
             ->assertOk()
-            ->assertJsonPath('data.email', 'api@streakflow.test');
+            ->assertJsonPath('data.email', 'api@linhtinh.test');
 
         $this->withToken($token)
             ->postJson('/api/logout')
@@ -54,12 +54,12 @@ class ApiAuthTest extends TestCase
     public function test_login_fails_with_invalid_credentials(): void
     {
         User::factory()->create([
-            'email' => 'api@streakflow.test',
+            'email' => 'api@linhtinh.test',
             'password' => Hash::make('password'),
         ]);
 
         $this->postJson('/api/login', [
-            'email' => 'api@streakflow.test',
+            'email' => 'api@linhtinh.test',
             'password' => 'wrong-password',
             'device_name' => 'phpunit',
         ])->assertStatus(401)

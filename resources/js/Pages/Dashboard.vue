@@ -1,6 +1,6 @@
 <script setup>
-import { Head, router, usePage } from '@inertiajs/vue3';
-import { computed, ref, watch } from 'vue';
+import { Head, Link, router, usePage } from '@inertiajs/vue3';
+import { computed, ref } from 'vue';
 import { useApi, unwrapApiData } from '@/composables/useApi';
 
 const props = defineProps({
@@ -51,176 +51,107 @@ const hpPredictSign = computed(() => props.stats.predicted_hp_change >= 0 ? '+' 
 <template>
     <Head title="Hôm nay" />
 
-    <AuthenticatedLayout>
-        <template #header>
-            <h2 class="text-xl font-semibold">Hôm nay — {{ today }}</h2>
-        </template>
+    <PageHeader :title="`Hôm nay — ${today}`" description="Mark done/skip task rồi chốt ngày để nhận điểm" />
 
-        <div class="py-8">
-            <div class="mx-auto max-w-3xl space-y-6 px-4 sm:px-6 lg:px-8">
-                <div class="grid grid-cols-2 gap-4 sm:grid-cols-4">
-                    <Card>
-                        <CardHeader class="pb-2">
-                            <CardTitle class="flex items-center gap-1 text-xs font-normal text-muted-foreground">
-                                <DynamicIcon name="Heart" size="14" class="text-red-500" /> HP
-                            </CardTitle>
-                        </CardHeader>
-                        <CardContent class="space-y-2">
-                            <div class="text-2xl font-bold text-red-600">{{ user.hp }}/100</div>
-                            <Progress :model-value="user.hp" />
-                        </CardContent>
-                    </Card>
-                    <Card>
-                        <CardHeader class="pb-2">
-                            <CardTitle class="flex items-center gap-1 text-xs font-normal text-muted-foreground">
-                                <DynamicIcon name="Zap" size="14" class="text-amber-500" /> Level
-                            </CardTitle>
-                        </CardHeader>
-                        <CardContent>
-                            <div class="text-2xl font-bold text-amber-600">Lv.{{ user.level }}</div>
-                            <div class="text-xs text-muted-foreground">{{ xpToNextLevel }} XP đến level tiếp</div>
-                        </CardContent>
-                    </Card>
-                    <Card>
-                        <CardHeader class="pb-2">
-                            <CardTitle class="flex items-center gap-1 text-xs font-normal text-muted-foreground">
-                                <DynamicIcon name="Flame" size="14" class="text-orange-500" /> Streak
-                            </CardTitle>
-                        </CardHeader>
-                        <CardContent>
-                            <div class="text-2xl font-bold text-orange-600">{{ user.streak_count }}</div>
-                        </CardContent>
-                    </Card>
-                    <Card>
-                        <CardHeader class="pb-2">
-                            <CardTitle class="flex items-center gap-1 text-xs font-normal text-muted-foreground">
-                                <DynamicIcon name="Shield" size="14" class="text-blue-500" /> Shield
-                            </CardTitle>
-                        </CardHeader>
-                        <CardContent>
-                            <div class="text-2xl font-bold text-blue-600">{{ user.shield_count }}</div>
-                        </CardContent>
-                    </Card>
-                </div>
+    <PageContainer class="space-y-8">
+        <div class="grid grid-cols-2 gap-4 lg:grid-cols-4">
+            <StatCard icon="Heart" label="HP" :value="`${user.hp}`" suffix="/100" variant="danger">
+                <Progress
+                    :model-value="user.hp"
+                    indicator-class="bg-gradient-to-r from-rose-400 to-rose-600"
+                    track-class="bg-rose-100"
+                    class="h-1.5"
+                />
+            </StatCard>
+            <StatCard icon="Zap" label="Level" :value="`Lv.${user.level}`" variant="warning">
+                <p class="text-xs text-muted-foreground">{{ xpToNextLevel }} XP đến level tiếp</p>
+            </StatCard>
+            <StatCard icon="Flame" label="Streak" :value="user.streak_count" variant="warning" />
+            <StatCard icon="Shield" label="Shield" :value="user.shield_count" variant="info" />
+        </div>
 
-                <Card class="border-indigo-200 bg-indigo-50/50">
-                    <CardContent class="pt-6 text-sm text-indigo-900">
-                        Hôm nay có <strong>{{ stats.total }}</strong> task
-                        · Skip miễn phí: <strong>{{ stats.remaining_skips }}</strong> lượt
-                        · HP dự kiến: <strong>{{ hpPredictSign }}{{ stats.predicted_hp_change }}</strong>
-                        · Done: {{ stats.done }} / Skip: {{ stats.skipped }} / Pending: {{ stats.pending }}
-                    </CardContent>
-                </Card>
+        <DailySummaryBanner :stats="stats" :hp-predict-sign="hpPredictSign" />
 
-                <Card v-if="isDayClosed" class="border-green-200 bg-green-50">
-                    <CardContent class="flex items-center justify-center gap-2 pt-6 text-green-700">
-                        <DynamicIcon name="CheckCircle2" size="18" />
-                        Ngày hôm nay đã được chốt.
-                        <a :href="route('reports.day', today)" class="underline">Xem báo cáo</a>
-                    </CardContent>
-                </Card>
+        <div
+            v-if="isDayClosed"
+            class="flex items-center justify-center gap-2 rounded-2xl border border-emerald-200 bg-emerald-50/80 px-6 py-4 text-emerald-800"
+        >
+            <DynamicIcon name="CheckCircle2" size="20" />
+            <span class="font-medium">Ngày hôm nay đã được chốt.</span>
+            <Link :href="route('reports.day', today)" class="font-semibold underline underline-offset-2">Xem báo cáo</Link>
+        </div>
 
-                <div class="space-y-3">
-                    <Card
-                        v-for="instance in instances"
-                        :key="instance.id"
-                        :class="{
-                            'opacity-60': instance.status === 'skipped' || instance.status === 'skipped_auto',
-                            'ring-2 ring-green-200': instance.status === 'done',
-                        }"
+        <PageSection title="Task hôm nay" :description="`${instances.length} task`" no-padding>
+            <div v-if="instances.length" class="space-y-3 p-4 sm:p-6">
+                <TaskInstanceCard
+                    v-for="instance in instances"
+                    :key="instance.id"
+                    :instance="instance"
+                    :is-day-closed="isDayClosed"
+                    :priority-variant="priorityVariant"
+                    @done="markDone"
+                    @skip="markSkip"
+                    @undo="markUndo"
+                />
+            </div>
+            <div v-else class="rounded-b-2xl border-t border-dashed border-border/60 bg-muted/20">
+                <EmptyState
+                    icon="CalendarCheck"
+                    title="Chưa có task hôm nay"
+                    description="Tạo task template để hệ thống tự sinh instance mỗi ngày."
+                >
+                    <template #action>
+                        <Button as="a" :href="route('tasks.create')" class="rounded-full px-6 shadow-md shadow-primary/20">
+                            <DynamicIcon name="Plus" size="16" class="mr-1" />
+                            Tạo task mới
+                        </Button>
+                    </template>
+                </EmptyState>
+            </div>
+            <template v-if="!isDayClosed" #footer>
+                <div class="flex justify-center">
+                    <Button
+                        size="lg"
+                        class="h-12 w-full max-w-md gap-2 rounded-full bg-primary font-semibold text-primary-foreground shadow-lg shadow-primary/30 transition-all hover:bg-primary/90 hover:shadow-xl hover:shadow-primary/40 sm:w-auto sm:px-10"
+                        @click="showConfirmClose = true"
                     >
-                        <CardContent class="flex items-center justify-between pt-6">
-                            <div class="flex-1">
-                                <div class="flex items-center gap-2">
-                                    <span
-                                        v-if="instance.template?.category"
-                                        class="h-3 w-3 rounded-full"
-                                        :style="{ backgroundColor: instance.template.category.color }"
-                                    />
-                                    <span class="font-medium">{{ instance.template?.title }}</span>
-                                    <Badge :variant="priorityVariant[instance.template?.priority] ?? 'secondary'">
-                                        {{ instance.template?.priority }}
-                                    </Badge>
-                                </div>
-                                <div class="mt-1 text-xs capitalize text-muted-foreground">{{ instance.status }}</div>
-                            </div>
-                            <div v-if="!isDayClosed" class="flex gap-2">
-                                <template v-if="instance.status === 'pending'">
-                                    <Button size="sm" class="bg-green-600 hover:bg-green-700" @click="markDone(instance.id)">
-                                        <DynamicIcon name="Check" size="14" class="mr-1" /> Done
-                                    </Button>
-                                    <Button size="sm" variant="secondary" @click="markSkip(instance.id)">
-                                        <DynamicIcon name="SkipForward" size="14" class="mr-1" /> Skip
-                                    </Button>
-                                </template>
-                                <Button v-else size="sm" variant="outline" @click="markUndo(instance.id)">
-                                    <DynamicIcon name="Undo2" size="14" class="mr-1" /> Undo
-                                </Button>
-                            </div>
-                        </CardContent>
-                    </Card>
-
-                    <Card v-if="instances.length === 0">
-                        <CardContent class="py-8 text-center text-muted-foreground">
-                            Chưa có task hôm nay.
-                            <a :href="route('tasks.create')" class="text-primary underline">Tạo task mới</a>
-                        </CardContent>
-                    </Card>
-                </div>
-
-                <div v-if="!isDayClosed" class="text-center">
-                    <Button size="lg" class="px-8" @click="showConfirmClose = true">
-                        <DynamicIcon name="CalendarCheck" size="16" class="mr-2" />
+                        <DynamicIcon name="CalendarCheck" size="18" />
                         Chốt Ngày
                     </Button>
                 </div>
-            </div>
-        </div>
-
-        <Dialog :open="showConfirmClose" @update:open="showConfirmClose = $event">
-            <template #title>Xác nhận chốt ngày</template>
-            <template #description>
-                Sau khi chốt bạn không thể thay đổi task. Task pending sẽ tự động bị skip. Tiếp tục?
             </template>
-            <div class="flex justify-end gap-3">
-                <Button variant="outline" @click="showConfirmClose = false">Hủy</Button>
-                <Button @click="confirmClose">Chốt ngày</Button>
-            </div>
-        </Dialog>
+        </PageSection>
+    </PageContainer>
 
-        <Dialog :open="showResult" @update:open="showResult = $event">
-            <template v-if="closeResultData" #title>Kết quả ngày</template>
-            <div v-if="closeResultData" class="grid grid-cols-2 gap-4 text-center">
-                <Card class="bg-red-50">
-                    <CardContent class="pt-4">
-                        <div class="text-xs text-muted-foreground">HP</div>
-                        <div class="text-xl font-bold" :class="closeResultData.hp_change >= 0 ? 'text-green-600' : 'text-red-600'">
-                            {{ closeResultData.hp_change >= 0 ? '+' : '' }}{{ closeResultData.hp_change }} → {{ closeResultData.hp_after }}
-                        </div>
-                    </CardContent>
-                </Card>
-                <Card class="bg-amber-50">
-                    <CardContent class="pt-4">
-                        <div class="text-xs text-muted-foreground">XP nhận</div>
-                        <div class="text-xl font-bold text-amber-600">+{{ closeResultData.xp_earned }}</div>
-                    </CardContent>
-                </Card>
-                <Card class="bg-orange-50">
-                    <CardContent class="pt-4">
-                        <div class="text-xs text-muted-foreground">Streak</div>
-                        <div class="text-xl font-bold text-orange-600">{{ closeResultData.streak_before }} → {{ closeResultData.streak_after }}</div>
-                    </CardContent>
-                </Card>
-                <Card class="bg-blue-50">
-                    <CardContent class="pt-4">
-                        <div class="text-xs text-muted-foreground">Hoàn thành</div>
-                        <div class="text-xl font-bold text-blue-600">{{ closeResultData.pct_completed }}%</div>
-                    </CardContent>
-                </Card>
-            </div>
-            <div class="mt-6 text-center">
-                <Button @click="showResult = false">Đóng</Button>
-            </div>
-        </Dialog>
-    </AuthenticatedLayout>
+    <Dialog :open="showConfirmClose" @update:open="showConfirmClose = $event">
+        <template #title>Xác nhận chốt ngày</template>
+        <template #description>
+            Sau khi chốt bạn không thể thay đổi task. Task pending sẽ tự động bị skip. Tiếp tục?
+        </template>
+        <div class="flex justify-end gap-3">
+            <Button variant="outline" class="rounded-full" @click="showConfirmClose = false">Hủy</Button>
+            <Button class="rounded-full" @click="confirmClose">Chốt ngày</Button>
+        </div>
+    </Dialog>
+
+    <Dialog :open="showResult" @update:open="showResult = $event">
+        <template v-if="closeResultData" #title>Kết quả ngày</template>
+        <div v-if="closeResultData" class="grid grid-cols-2 gap-3">
+            <StatCard
+                label="HP"
+                :value="`${closeResultData.hp_change >= 0 ? '+' : ''}${closeResultData.hp_change} → ${closeResultData.hp_after}`"
+                :variant="closeResultData.hp_change >= 0 ? 'success' : 'danger'"
+            />
+            <StatCard label="XP nhận" :value="`+${closeResultData.xp_earned}`" variant="warning" />
+            <StatCard
+                label="Streak"
+                :value="`${closeResultData.streak_before} → ${closeResultData.streak_after}`"
+                variant="warning"
+            />
+            <StatCard label="Hoàn thành" :value="`${closeResultData.pct_completed}%`" variant="info" />
+        </div>
+        <div class="mt-6 text-center">
+            <Button class="rounded-full px-8" @click="showResult = false">Đóng</Button>
+        </div>
+    </Dialog>
 </template>

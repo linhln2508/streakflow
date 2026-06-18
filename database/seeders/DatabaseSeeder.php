@@ -27,7 +27,7 @@ class DatabaseSeeder extends Seeder
         }
 
         User::updateOrCreate(
-            ['email' => 'admin@streakflow.test'],
+            ['email' => 'admin@linhtinh.test'],
             [
                 'name' => 'Admin',
                 'password' => Hash::make('password'),
@@ -37,7 +37,7 @@ class DatabaseSeeder extends Seeder
         );
 
         User::updateOrCreate(
-            ['email' => 'user@streakflow.test'],
+            ['email' => 'user@linhtinh.test'],
             [
                 'name' => 'Demo User',
                 'password' => Hash::make('password'),

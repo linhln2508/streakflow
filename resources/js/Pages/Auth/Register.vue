@@ -27,8 +27,7 @@ const submit = async () => {
 
     try {
         const response = await useApi(route('web_api.auth.register')).post({ ...form });
-        const redirect = unwrapApiData(response)?.redirect ?? route('dashboard');
-        router.visit(redirect);
+        router.visit(unwrapApiData(response)?.redirect ?? route('dashboard'));
     } finally {
         processing.value = false;
         form.password = '';
@@ -38,21 +37,32 @@ const submit = async () => {
 </script>
 
 <template>
-    <GuestLayout>
-        <Head title="Đăng ký" />
+    <Head title="Đăng ký" />
 
-        <form @submit.prevent="submit" class="space-y-4">
-            <Field ref="nameField" v-model="form.name" :field="{ label: 'Tên', type: 'Text', validate: 'required|string|max:255' }" />
-            <Field ref="emailField" v-model="form.email" :field="{ label: 'Email', type: 'Email', validate: 'required|email' }" />
-            <Field ref="passwordField" v-model="form.password" :field="{ label: 'Mật khẩu', type: 'Password', validate: 'required|min:8' }" />
-            <Field ref="confirmField" v-model="form.password_confirmation" :field="{ label: 'Xác nhận mật khẩu', type: 'Password', validate: 'required' }" />
+    <div class="mb-8">
+        <div class="mb-5 flex h-14 w-14 items-center justify-center rounded-2xl bg-primary/15 ring-1 ring-primary/20">
+            <DynamicIcon name="UserPlus" size="26" class="text-primary" />
+        </div>
+        <h1 class="text-2xl font-bold tracking-tight">Tạo tài khoản</h1>
+        <p class="mt-1.5 text-sm text-muted-foreground">Bắt đầu xây dựng thói quen hôm nay</p>
+    </div>
 
-            <div class="flex items-center justify-end gap-3">
-                <Link :href="route('login')" class="text-sm text-muted-foreground underline hover:text-foreground">
-                    Đã có tài khoản?
-                </Link>
-                <Button type="submit" :disabled="processing">Đăng ký</Button>
-            </div>
-        </form>
-    </GuestLayout>
+    <form @submit.prevent="submit" class="space-y-4">
+        <Field ref="nameField" v-model="form.name" :field="{ label: 'Tên', type: 'Text', validate: 'required|string|max:255' }" />
+        <Field ref="emailField" v-model="form.email" :field="{ label: 'Email', type: 'Email', validate: 'required|email' }" />
+        <Field ref="passwordField" v-model="form.password" :field="{ label: 'Mật khẩu', type: 'Password', validate: 'required|min:8' }" />
+        <Field ref="confirmField" v-model="form.password_confirmation" :field="{ label: 'Xác nhận mật khẩu', type: 'Password', validate: 'required' }" />
+        <Button
+            type="submit"
+            :disabled="processing"
+            class="mt-2 h-11 w-full rounded-xl bg-primary font-semibold text-primary-foreground shadow-md shadow-primary/25 hover:bg-primary/90"
+        >
+            {{ processing ? 'Đang tạo...' : 'Đăng ký' }}
+        </Button>
+    </form>
+
+    <p class="mt-8 text-center text-sm text-muted-foreground">
+        Đã có tài khoản?
+        <Link :href="route('login')" class="font-semibold text-primary hover:underline">Đăng nhập</Link>
+    </p>
 </template>

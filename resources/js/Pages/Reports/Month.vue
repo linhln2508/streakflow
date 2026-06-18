@@ -1,11 +1,6 @@
 <script setup>
-import AuthenticatedLayout from '@/Layouts/AuthenticatedLayout.vue';
 import AppChart from '@/Components/charts/AppChart.vue';
-import Card from '@/Components/ui/Card.vue';
-import CardContent from '@/Components/ui/CardContent.vue';
-import CardHeader from '@/Components/ui/CardHeader.vue';
-import CardTitle from '@/Components/ui/CardTitle.vue';
-import { Head } from '@inertiajs/vue3';
+import { Head, Link } from '@inertiajs/vue3';
 import { computed } from 'vue';
 
 const props = defineProps({
@@ -50,54 +45,45 @@ const hpDatasets = computed(() => [{
 
 <template>
     <Head :title="`Tháng ${month}/${year}`" />
-    <AuthenticatedLayout>
-        <template #header>
-            <h2 class="text-xl font-semibold">Báo cáo tháng {{ month }}/{{ year }}</h2>
+
+    <PageHeader
+        :title="`Tháng ${month}/${year}`"
+        :breadcrumbs="[
+            { label: 'Báo cáo', href: route('reports.overview') },
+            { label: `Tháng ${month}` },
+        ]"
+    >
+        <template #actions>
+            <ReportsNav />
         </template>
-        <div class="py-8">
-            <div class="mx-auto max-w-3xl space-y-6 px-4">
-                <Card>
-                    <CardHeader>
-                        <CardTitle>Calendar</CardTitle>
-                    </CardHeader>
-                    <CardContent>
-                        <div class="mb-2 grid grid-cols-7 gap-1 text-center text-xs text-muted-foreground">
-                            <div v-for="label in ['T2','T3','T4','T5','T6','T7','CN']" :key="label">{{ label }}</div>
-                        </div>
-                        <div class="grid grid-cols-7 gap-1">
-                            <div v-for="n in firstDayOffset" :key="'empty-' + n" />
-                            <div v-for="day in daysInMonth" :key="day" class="aspect-square">
-                                <a
-                                    :href="route('reports.day', dateLink(day))"
-                                    class="flex h-full items-center justify-center rounded text-xs font-medium"
-                                    :class="heatColor(getPct(day))"
-                                >{{ day }}</a>
-                            </div>
-                        </div>
-                    </CardContent>
-                </Card>
+    </PageHeader>
 
-                <Card v-if="hpChartData.length">
-                    <CardHeader>
-                        <CardTitle>HP theo thời gian</CardTitle>
-                    </CardHeader>
-                    <CardContent>
-                        <AppChart type="line" :labels="hpLabels" :datasets="hpDatasets" title="HP thay đổi trong tháng" />
-                    </CardContent>
-                </Card>
-
-                <Card v-if="topSkipped.length">
-                    <CardHeader>
-                        <CardTitle>Task hay bị skip</CardTitle>
-                    </CardHeader>
-                    <CardContent>
-                        <div v-for="t in topSkipped" :key="t.title" class="flex justify-between border-b py-2 last:border-0">
-                            <span>{{ t.title }}</span>
-                            <span class="font-medium text-destructive">{{ t.count }} lần</span>
-                        </div>
-                    </CardContent>
-                </Card>
+    <PageContainer class="space-y-6">
+        <PageSection title="Calendar">
+            <div class="mb-2 grid grid-cols-7 gap-1 text-center text-xs text-muted-foreground">
+                <div v-for="label in ['T2','T3','T4','T5','T6','T7','CN']" :key="label">{{ label }}</div>
             </div>
-        </div>
-    </AuthenticatedLayout>
+            <div class="grid grid-cols-7 gap-1">
+                <div v-for="n in firstDayOffset" :key="'empty-' + n" />
+                <div v-for="day in daysInMonth" :key="day" class="aspect-square">
+                    <Link
+                        :href="route('reports.day', dateLink(day))"
+                        class="flex h-full items-center justify-center rounded text-xs font-medium"
+                        :class="heatColor(getPct(day))"
+                    >{{ day }}</Link>
+                </div>
+            </div>
+        </PageSection>
+
+        <PageSection v-if="hpChartData.length" title="HP theo thời gian">
+            <AppChart type="line" :labels="hpLabels" :datasets="hpDatasets" title="HP thay đổi trong tháng" />
+        </PageSection>
+
+        <PageSection v-if="topSkipped.length" title="Task hay bị skip">
+            <div v-for="t in topSkipped" :key="t.title" class="flex justify-between border-b py-2 last:border-0">
+                <span>{{ t.title }}</span>
+                <span class="font-medium text-destructive">{{ t.count }} lần</span>
+            </div>
+        </PageSection>
+    </PageContainer>
 </template>

@@ -31,8 +31,7 @@ const submit = async () => {
 
     try {
         const response = await useApi(route('web_api.auth.reset_password')).post({ ...form });
-        const redirect = unwrapApiData(response)?.redirect ?? route('login');
-        router.visit(redirect);
+        router.visit(unwrapApiData(response)?.redirect ?? route('login'));
     } finally {
         processing.value = false;
         form.password = '';
@@ -42,16 +41,17 @@ const submit = async () => {
 </script>
 
 <template>
-    <GuestLayout>
-        <Head title="Đặt lại mật khẩu" />
+    <Head title="Đặt lại mật khẩu" />
 
-        <form @submit.prevent="submit" class="space-y-4">
-            <Field ref="emailField" v-model="form.email" :field="{ label: 'Email', type: 'Email', validate: 'required|email' }" />
-            <Field ref="passwordField" v-model="form.password" :field="{ label: 'Mật khẩu mới', type: 'Password', validate: 'required|min:8' }" />
-            <Field ref="confirmField" v-model="form.password_confirmation" :field="{ label: 'Xác nhận mật khẩu', type: 'Password', validate: 'required' }" />
-            <div class="flex justify-end">
-                <Button type="submit" :disabled="processing">Đặt lại mật khẩu</Button>
-            </div>
-        </form>
-    </GuestLayout>
+    <div class="mb-6">
+        <h1 class="text-2xl font-bold">Đặt lại mật khẩu</h1>
+        <p class="mt-1 text-sm text-muted-foreground">Nhập mật khẩu mới cho tài khoản</p>
+    </div>
+
+    <form @submit.prevent="submit" class="space-y-4">
+        <Field ref="emailField" v-model="form.email" :field="{ label: 'Email', type: 'Email', validate: 'required|email' }" />
+        <Field ref="passwordField" v-model="form.password" :field="{ label: 'Mật khẩu mới', type: 'Password', validate: 'required|min:8' }" />
+        <Field ref="confirmField" v-model="form.password_confirmation" :field="{ label: 'Xác nhận mật khẩu', type: 'Password', validate: 'required' }" />
+        <Button type="submit" :disabled="processing" class="w-full">Đặt lại mật khẩu</Button>
+    </form>
 </template>

@@ -1,10 +1,5 @@
 <script setup>
-import AuthenticatedLayout from '@/Layouts/AuthenticatedLayout.vue';
 import AppChart from '@/Components/charts/AppChart.vue';
-import Card from '@/Components/ui/Card.vue';
-import CardContent from '@/Components/ui/CardContent.vue';
-import CardHeader from '@/Components/ui/CardHeader.vue';
-import CardTitle from '@/Components/ui/CardTitle.vue';
 import { Head } from '@inertiajs/vue3';
 import { computed } from 'vue';
 
@@ -49,58 +44,48 @@ const chartDatasets = computed(() => [{
 
 <template>
     <Head :title="`Tuần ${week}/${year}`" />
-    <AuthenticatedLayout>
-        <template #header>
-            <h2 class="text-xl font-semibold">Báo cáo tuần {{ week }}/{{ year }}</h2>
+
+    <PageHeader
+        :title="`Tuần ${week}/${year}`"
+        :description="`${start} → ${end}`"
+        :breadcrumbs="[
+            { label: 'Báo cáo', href: route('reports.overview') },
+            { label: `Tuần ${week}` },
+        ]"
+    >
+        <template #actions>
+            <ReportsNav />
         </template>
-        <div class="py-8">
-            <div class="mx-auto max-w-3xl space-y-6 px-4">
-                <div class="grid grid-cols-2 gap-4">
-                    <Card>
-                        <CardContent class="pt-6">
-                            <span class="text-muted-foreground">Tổng HP:</span>
-                            <strong :class="totalHpChange >= 0 ? 'text-green-600' : 'text-red-600'">
-                                {{ totalHpChange >= 0 ? '+' : '' }}{{ totalHpChange }}
-                            </strong>
-                        </CardContent>
-                    </Card>
-                    <Card>
-                        <CardContent class="pt-6">
-                            <span class="text-muted-foreground">Tổng XP:</span>
-                            <strong class="text-amber-600">+{{ totalXpEarned }}</strong>
-                        </CardContent>
-                    </Card>
-                </div>
+    </PageHeader>
 
-                <Card>
-                    <CardHeader>
-                        <CardTitle>Heatmap tuần</CardTitle>
-                    </CardHeader>
-                    <CardContent>
-                        <div class="grid grid-cols-7 gap-2">
-                            <div v-for="d in days" :key="d.date" class="text-center">
-                                <div class="mb-1 text-xs text-muted-foreground">{{ d.label }}</div>
-                                <a
-                                    :href="route('reports.day', d.date)"
-                                    class="block rounded-lg p-4 text-sm font-bold text-white"
-                                    :class="heatColor(d.pct)"
-                                >
-                                    {{ d.pct }}%
-                                </a>
-                            </div>
-                        </div>
-                    </CardContent>
-                </Card>
-
-                <Card>
-                    <CardHeader>
-                        <CardTitle>Biểu đồ hoàn thành</CardTitle>
-                    </CardHeader>
-                    <CardContent>
-                        <AppChart :labels="chartLabels" :datasets="chartDatasets" title="% hoàn thành theo ngày" />
-                    </CardContent>
-                </Card>
-            </div>
+    <PageContainer class="space-y-6">
+        <div class="grid grid-cols-2 gap-4">
+            <StatCard
+                icon="Heart"
+                label="Tổng HP"
+                :value="`${totalHpChange >= 0 ? '+' : ''}${totalHpChange}`"
+                :variant="totalHpChange >= 0 ? 'success' : 'danger'"
+            />
+            <StatCard icon="Zap" label="Tổng XP" :value="`+${totalXpEarned}`" variant="warning" />
         </div>
-    </AuthenticatedLayout>
+
+        <PageSection title="Heatmap tuần">
+            <div class="grid grid-cols-7 gap-2">
+                <div v-for="d in days" :key="d.date" class="text-center">
+                    <div class="mb-1 text-xs text-muted-foreground">{{ d.label }}</div>
+                    <Link
+                        :href="route('reports.day', d.date)"
+                        class="block rounded-lg p-4 text-sm font-bold text-white"
+                        :class="heatColor(d.pct)"
+                    >
+                        {{ d.pct }}%
+                    </Link>
+                </div>
+            </div>
+        </PageSection>
+
+        <PageSection title="Biểu đồ hoàn thành">
+            <AppChart :labels="chartLabels" :datasets="chartDatasets" title="% hoàn thành theo ngày" />
+        </PageSection>
+    </PageContainer>
 </template>
