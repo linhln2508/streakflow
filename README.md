@@ -26,13 +26,21 @@ php artisan serve
 Chạy dev:
 
 ```bash
+make dev
+```
+
+Chạy `php artisan serve` (port `8082`, đổi bằng `make dev PORT=8000`) và `pnpm dev` song song. Dừng cả hai bằng `Ctrl+C`.
+
+Hoặc tách terminal:
+
+```bash
 # Terminal 1
-php artisan serve
+php artisan serve --port=8082
 
 # Terminal 2
-pnpm run dev
+pnpm dev
 
-# Terminal 3 (queue worker)
+# Terminal 3 (queue worker, nếu cần)
 php artisan queue:work
 ```
 
@@ -44,7 +52,7 @@ Thêm vào crontab:
 * * * * * cd /path/to/linh-ta-linh-tinh && php artisan schedule:run >> /dev/null 2>&1
 ```
 
-Scheduled commands:
+Scheduled commands (theo `APP_TIMEZONE`, mặc định `Asia/Ho_Chi_Minh`):
 - `00:05` — `linhtinh:generate-tasks` — Tạo task instances cho ngày mới
 
 Chốt ngày do user thực hiện thủ công trên trang **Hôm nay** (`/dashboard`) — chuyển ngày bằng thanh phía trên khi còn ngày chưa chốt.
