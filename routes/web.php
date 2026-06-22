@@ -3,6 +3,7 @@
 use App\Http\Controllers\AdminController;
 use App\Http\Controllers\CategoryController;
 use App\Http\Controllers\DashboardController;
+use App\Http\Controllers\GuideController;
 use App\Http\Controllers\ProfileController;
 use App\Http\Controllers\ReportController;
 use App\Http\Controllers\TaskTemplateController;
@@ -20,6 +21,8 @@ Route::prefix('web_api')->group(function () {
 
 Route::middleware(['auth', 'approved', 'verified'])->group(function () {
     Route::get('/dashboard', [DashboardController::class, 'index'])->name('dashboard');
+
+    Route::get('/guide', [GuideController::class, 'index'])->name('guide');
 
     Route::redirect('/close-days', '/dashboard');
     Route::get('/close-days/{date}', fn (string $date) => redirect()->route('dashboard', ['date' => $date]));

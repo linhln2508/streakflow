@@ -6,6 +6,7 @@ import { useApi, unwrapApiData } from '@/composables/useApi';
 const props = defineProps({
     instances: Array,
     stats: Object,
+    closePreview: Object,
     isDayClosed: Boolean,
     selectedDate: String,
     today: String,
@@ -22,6 +23,7 @@ const showResult = ref(false);
 const showCompleted = ref(true);
 const quickProcessing = ref(false);
 const closeResultData = ref(null);
+const streakStrategy = ref(null);
 
 const quickForm = reactive({
     title: '',
@@ -57,9 +59,13 @@ const overdueCount = computed(() =>
 
 const hpPredictSign = computed(() => props.stats.predicted_hp_change >= 0 ? '+' : '');
 
+const showStickyTasks = computed(() =>
+    !props.isDayClosed && pendingInstances.value.length > 0,
+);
+
 const reloadDay = () => {
     router.reload({
-        only: ['instances', 'stats', 'unclosedDays', 'selectedDate', 'isToday'],
+        only: ['instances', 'stats', 'closePreview', 'unclosedDays', 'selectedDate', 'isToday'],
     });
 };
 
@@ -100,11 +106,20 @@ const submitQuickTask = async () => {
     }
 };
 
+const openCloseDialog = () => {
+    streakStrategy.value = props.closePreview?.default_strategy ?? null;
+    showConfirmClose.value = true;
+};
+
 const confirmClose = async () => {
     showConfirmClose.value = false;
-    const response = await useApi(route('web_api.today.close')).post({
-        date: props.selectedDate,
-    });
+    const payload = { date: props.selectedDate };
+
+    if (props.closePreview?.needs_streak_choice && streakStrategy.value) {
+        payload.streak_strategy = streakStrategy.value;
+    }
+
+    const response = await useApi(route('web_api.today.close')).post(payload);
     closeResultData.value = unwrapApiData(response);
     showResult.value = true;
     router.reload();
@@ -122,7 +137,14 @@ const afterResultClose = () => {
     <PageHeader
         :title="pageTitle"
         description="Xử lý task rồi chốt ngày để nhận HP, XP và streak"
-    />
+    >
+        <template #actions>
+            <Button as="a" :href="route('guide')" variant="outline" size="pill-sm">
+                <DynamicIcon name="BookOpen" size="14" class="mr-1" />
+                Luật chơi
+            </Button>
+        </template>
+    </PageHeader>
 
     <PageContainer class="space-y-8">
         <div class="grid grid-cols-2 gap-4 lg:grid-cols-4">
@@ -158,6 +180,12 @@ const afterResultClose = () => {
 
         <DailySummaryBanner :stats="stats" :hp-predict-sign="hpPredictSign" />
 
+        <ShieldStatusPanel
+            :shield-count="user.shield_count ?? 0"
+            :debt-count="user.debt_count ?? 0"
+            :streak-count="user.streak_count ?? 0"
+        />
+
         <div
             v-if="!isToday"
             class="rounded-xl border border-amber-200 bg-amber-50 px-4 py-3 text-sm text-amber-950"
@@ -186,7 +214,7 @@ const afterResultClose = () => {
                             <option value="medium">Trung bình</option>
                             <option value="high">Cao</option>
                         </Select>
-                        <Button type="submit" :disabled="quickProcessing" class="rounded-full px-6">
+                        <Button type="submit" variant="default" size="pill" :disabled="quickProcessing">
                             <DynamicIcon name="Plus" size="14" />
                             {{ quickProcessing ? 'Đang thêm...' : 'Thêm' }}
                         </Button>
@@ -245,7 +273,7 @@ const afterResultClose = () => {
                     :description="isToday ? 'Dùng form phía trên để thêm task nhanh, hoặc tạo task template lặp lại.' : undefined"
                 >
                     <template v-if="isToday" #action>
-                        <Button as="a" :href="route('tasks.create')" class="rounded-full px-6 shadow-md shadow-primary/20">
+                        <Button as="a" :href="route('tasks.create')" variant="emphasis" size="pill">
                             <DynamicIcon name="Plus" size="16" class="mr-1" />
                             Tạo task template
                         </Button>
@@ -256,9 +284,10 @@ const afterResultClose = () => {
             <template v-if="!isDayClosed && instances.length" #footer>
                 <div class="flex justify-center">
                     <Button
-                        size="lg"
-                        class="h-12 w-full max-w-md gap-2 rounded-full bg-primary font-semibold text-primary-foreground shadow-lg shadow-primary/30 sm:w-auto sm:px-10"
-                        @click="showConfirmClose = true"
+                        variant="emphasis"
+                        size="pill-lg"
+                        class="w-full max-w-md sm:w-auto"
+                        @click="openCloseDialog"
                     >
                         <DynamicIcon name="CalendarCheck" size="18" />
                         Chốt ngày {{ isToday ? 'hôm nay' : selectedDate }}
@@ -271,11 +300,12 @@ const afterResultClose = () => {
     <Dialog :open="showConfirmClose" @update:open="showConfirmClose = $event">
         <template #title>Xác nhận chốt ngày</template>
         <template #description>
-            Sau khi chốt bạn không thể thay đổi task. Task pending sẽ tự động bị skip. Tiếp tục?
+            Sau khi chốt bạn không thể thay đổi task.
         </template>
-        <div class="flex justify-end gap-3">
-            <Button variant="outline" class="rounded-full" @click="showConfirmClose = false">Hủy</Button>
-            <Button class="rounded-full" @click="confirmClose">Chốt ngày</Button>
+        <CloseDayPreviewPanel v-model="streakStrategy" :preview="closePreview" />
+        <div class="mt-6 flex justify-end gap-3">
+            <Button variant="outline" size="pill" @click="showConfirmClose = false">Hủy</Button>
+            <Button variant="default" size="pill" @click="confirmClose">Chốt ngày</Button>
         </div>
     </Dialog>
 
@@ -295,8 +325,19 @@ const afterResultClose = () => {
             />
             <StatCard label="Hoàn thành" :value="`${closeResultData.pct_completed}%`" variant="info" />
         </div>
+        <p v-if="closeResultData.shield_used" class="mt-3 text-center text-sm text-sky-700">Đã dùng 1 Shield để giữ streak.</p>
+        <p v-if="closeResultData.debt_added" class="mt-3 text-center text-sm text-amber-700">Đã ứng trước — ghi 1 nợ shield.</p>
+        <p v-if="closeResultData.streak_reset" class="mt-3 text-center text-sm text-rose-700">Streak đã reset về 0.</p>
         <div class="mt-6 text-center">
-            <Button class="rounded-full px-8" @click="afterResultClose">Tiếp tục</Button>
+            <Button variant="default" size="pill" @click="afterResultClose">Tiếp tục</Button>
         </div>
     </Dialog>
+
+    <PendingTasksStickyBar
+        v-if="showStickyTasks"
+        :instances="pendingInstances"
+        :is-day-closed="isDayClosed"
+        @done="markDone"
+        @skip="markSkip"
+    />
 </template>

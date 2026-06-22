@@ -44,10 +44,29 @@ class GamificationServiceTest extends TestCase
         $this->assertEquals(1, $result['shield_count']);
     }
 
-    public function test_level_calculation(): void
+    public function test_debt_strategy_when_explicit(): void
     {
-        $this->assertEquals(1, $this->service->calculateLevel(0));
-        $this->assertEquals(2, $this->service->calculateLevel(150));
-        $this->assertEquals(3, $this->service->calculateLevel(650));
+        $result = $this->service->processStreak(35, 2, 0, 50.0, 'debt');
+        $this->assertEquals(35, $result['streak_after']);
+        $this->assertTrue($result['debt_added']);
+        $this->assertEquals(2, $result['shield_count']);
+        $this->assertFalse($result['shield_used']);
+    }
+
+    public function test_reset_strategy_ignores_shield(): void
+    {
+        $result = $this->service->processStreak(10, 2, 0, 50.0, 'reset');
+        $this->assertEquals(0, $result['streak_after']);
+        $this->assertTrue($result['streak_reset']);
+        $this->assertEquals(2, $result['shield_count']);
+    }
+
+    public function test_preview_close_day_offers_shield_and_debt(): void
+    {
+        $preview = $this->service->previewCloseDay(35, 1, 0, 10, 2, 1, 7);
+        $this->assertTrue($preview['needs_streak_choice']);
+        $this->assertArrayHasKey('shield', $preview['outcomes']);
+        $this->assertArrayHasKey('debt', $preview['outcomes']);
+        $this->assertEquals('shield', $preview['default_strategy']);
     }
 }

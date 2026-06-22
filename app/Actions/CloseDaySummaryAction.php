@@ -18,7 +18,7 @@ class CloseDaySummaryAction
         protected BadgeService $badgeService,
     ) {}
 
-    public function execute(int $userId, Carbon $date, string $closedBy = 'user'): DailySummary
+    public function execute(int $userId, Carbon $date, string $closedBy = 'user', ?string $streakStrategy = null): DailySummary
     {
         $user = User::findOrFail($userId);
         $dateStr = $date->toDateString();
@@ -28,7 +28,7 @@ class CloseDaySummaryAction
             return $existing;
         }
 
-        return DB::transaction(function () use ($user, $date, $dateStr, $closedBy) {
+        return DB::transaction(function () use ($user, $date, $dateStr, $closedBy, $streakStrategy) {
             $instances = TaskInstance::where('user_id', $user->id)
                 ->whereDate('scheduled_date', $dateStr)
                 ->lockForUpdate()
@@ -56,7 +56,8 @@ class CloseDaySummaryAction
                 $user->streak_count,
                 $user->shield_count,
                 $user->debt_count,
-                $pctCompleted
+                $pctCompleted,
+                $streakStrategy,
             );
 
             $xpData = $this->gamification->calculateXpEarned(
@@ -122,6 +123,15 @@ class CloseDaySummaryAction
                     'user_id' => $user->id,
                     'action' => 'earned',
                     'reason' => 'perfect_day',
+                    'date' => $dateStr,
+                ]);
+            }
+
+            if ($streakResult['debt_added']) {
+                ShieldLog::create([
+                    'user_id' => $user->id,
+                    'action' => 'used',
+                    'reason' => 'debt_advance',
                     'date' => $dateStr,
                 ]);
             }

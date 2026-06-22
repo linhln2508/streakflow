@@ -110,16 +110,16 @@ const statusLabel = computed(() => {
 
         <div v-if="!isDayClosed" class="flex shrink-0 gap-2">
             <template v-if="instance.status === 'pending'">
-                <Button size="sm" class="rounded-full bg-emerald-600 px-4 shadow-sm hover:bg-emerald-700" @click="$emit('done', instance.id)">
+                <Button variant="success" size="pill-sm" @click="$emit('done', instance.id)">
                     <DynamicIcon name="Check" size="14" />
                     Done
                 </Button>
-                <Button size="sm" variant="outline" class="rounded-full" @click="$emit('skip', instance.id)">
+                <Button variant="outline" size="pill-sm" @click="$emit('skip', instance.id)">
                     <DynamicIcon name="SkipForward" size="14" />
                     Skip
                 </Button>
             </template>
-            <Button v-else size="sm" variant="ghost" class="rounded-full" @click="$emit('undo', instance.id)">
+            <Button v-else variant="ghost" size="pill-sm" @click="$emit('undo', instance.id)">
                 <DynamicIcon name="Undo2" size="14" />
                 Undo
             </Button>

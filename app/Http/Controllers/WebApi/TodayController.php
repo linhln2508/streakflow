@@ -92,6 +92,7 @@ class TodayController extends Controller
     {
         $validator = validator($request->all(), [
             'date' => 'nullable|date_format:Y-m-d|before_or_equal:today',
+            'streak_strategy' => 'nullable|in:shield,debt,reset,auto',
         ]);
 
         if ($validator->fails()) {
@@ -116,7 +117,12 @@ class TodayController extends Controller
             return $this->jsonFail(__('today.no_tasks_to_close'), 422);
         }
 
-        $summary = $action->execute($user->id, $date, 'user');
+        $summary = $action->execute(
+            $user->id,
+            $date,
+            'user',
+            $request->input('streak_strategy'),
+        );
 
         return $this->jsonSuccess([
             'date' => $dateStr,

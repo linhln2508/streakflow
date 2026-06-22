@@ -47,7 +47,7 @@ const deleteTask = async (id) => {
 
     <PageHeader title="Task Templates" description="Thiết lập task một lần — hệ thống tự tạo instance mỗi ngày">
         <template #actions>
-            <Button as="a" :href="route('tasks.create')" class="rounded-full shadow-md shadow-primary/20">
+            <Button as="a" :href="route('tasks.create')" variant="emphasis" size="pill">
                 <DynamicIcon name="Plus" size="14" />
                 Tạo task
             </Button>
@@ -98,10 +98,10 @@ const deleteTask = async (id) => {
                     </div>
                 </div>
                 <div class="flex shrink-0 gap-2">
-                    <Button as="a" :href="route('tasks.edit', t.id)" variant="outline" size="sm" class="rounded-full">
+                    <Button as="a" :href="route('tasks.edit', t.id)" variant="outline" size="pill-sm">
                         <DynamicIcon name="Pencil" size="14" />
                     </Button>
-                    <Button variant="destructive" size="sm" class="rounded-full" @click="deleteTask(t.id)">
+                    <Button variant="destructive" size="pill-sm" @click="deleteTask(t.id)">
                         <DynamicIcon name="Trash2" size="14" />
                     </Button>
                 </div>
@@ -111,7 +111,7 @@ const deleteTask = async (id) => {
         <PageSection v-else no-padding>
             <EmptyState icon="CheckCircle2" title="Chưa có task template" description="Tạo template để bắt đầu theo dõi thói quen.">
                 <template #action>
-                    <Button as="a" :href="route('tasks.create')" class="rounded-full px-6 shadow-md shadow-primary/20">
+                    <Button as="a" :href="route('tasks.create')" variant="emphasis" size="pill">
                         <DynamicIcon name="Plus" size="14" />
                         Tạo task
                     </Button>

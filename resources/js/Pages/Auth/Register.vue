@@ -52,11 +52,7 @@ const submit = async () => {
         <Field ref="emailField" v-model="form.email" :field="{ label: 'Email', type: 'Email', validate: 'required|email' }" />
         <Field ref="passwordField" v-model="form.password" :field="{ label: 'Mật khẩu', type: 'Password', validate: 'required|min:8' }" />
         <Field ref="confirmField" v-model="form.password_confirmation" :field="{ label: 'Xác nhận mật khẩu', type: 'Password', validate: 'required' }" />
-        <Button
-            type="submit"
-            :disabled="processing"
-            class="mt-2 h-11 w-full rounded-xl bg-primary font-semibold text-primary-foreground shadow-md shadow-primary/25 hover:bg-primary/90"
-        >
+        <Button type="submit" variant="emphasis" size="block" class="mt-2" :disabled="processing">
             {{ processing ? 'Đang tạo...' : 'Đăng ký' }}
         </Button>
     </form>

@@ -44,11 +44,23 @@ class DashboardController extends Controller
         }
 
         $instances = $this->dayView->loadInstances($user->id, $selectedDate);
+        $stats = $this->dayView->buildStats($instances);
         $isDayClosed = false;
+
+        $closePreview = $this->gamification->previewCloseDay(
+            $user->streak_count ?? 0,
+            $user->shield_count ?? 0,
+            $user->debt_count ?? 0,
+            $stats['total'],
+            $stats['done'],
+            $stats['skipped'],
+            $stats['pending'],
+        );
 
         return Inertia::render('Dashboard', [
             'instances' => $instances,
-            'stats' => $this->dayView->buildStats($instances),
+            'stats' => $stats,
+            'closePreview' => $closePreview,
             'isDayClosed' => $isDayClosed,
             'selectedDate' => $selectedDate->toDateString(),
             'today' => $todayString,

@@ -47,7 +47,7 @@ const verificationLinkSent = computed(() =>
     </div>
 
     <form @submit.prevent="submit" class="space-y-4">
-        <Button type="submit" :disabled="processing" class="w-full">Gửi lại email xác minh</Button>
-        <Button type="button" variant="outline" class="w-full" @click="logout">Đăng xuất</Button>
+        <Button type="submit" variant="emphasis" size="block" :disabled="processing">Gửi lại email xác minh</Button>
+        <Button type="button" variant="outline" size="block" @click="logout">Đăng xuất</Button>
     </form>
 </template>

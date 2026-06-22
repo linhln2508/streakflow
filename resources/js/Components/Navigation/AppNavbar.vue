@@ -57,7 +57,7 @@ const logout = async () => {
                     <UserStatsBar :user="user" />
                     <Dropdown align="right" width="48">
                         <template #trigger>
-                            <Button variant="outline" size="sm" class="gap-2 rounded-full border-border/60 pl-2 pr-3 shadow-sm">
+                            <Button variant="outline" size="pill-sm" class="gap-2 pl-2 pr-3">
                                 <span class="flex h-6 w-6 items-center justify-center rounded-full bg-primary/10 text-xs font-bold text-primary">
                                     {{ user.name?.charAt(0)?.toUpperCase() }}
                                 </span>
@@ -66,6 +66,7 @@ const logout = async () => {
                             </Button>
                         </template>
                         <template #content>
+                            <DropdownLink :href="route('guide')">Hướng dẫn & Luật chơi</DropdownLink>
                             <DropdownLink :href="route('profile.edit')">Hồ sơ</DropdownLink>
                             <button
                                 type="button"
@@ -78,7 +79,7 @@ const logout = async () => {
                     </Dropdown>
                 </div>
 
-                <Button variant="ghost" size="icon" class="rounded-full md:hidden" @click="showingMobileMenu = !showingMobileMenu">
+                <Button variant="ghost" size="icon-pill" class="md:hidden" @click="showingMobileMenu = !showingMobileMenu">
                     <DynamicIcon :name="showingMobileMenu ? 'X' : 'Menu'" size="20" />
                 </Button>
             </div>
@@ -110,6 +111,7 @@ const logout = async () => {
                 <p class="text-sm font-semibold">{{ user.name }}</p>
                 <div class="mt-2 flex gap-4">
                     <Link :href="route('profile.edit')" class="text-sm font-medium text-primary">Hồ sơ</Link>
+                    <Link :href="route('guide')" class="text-sm font-medium text-primary">Luật chơi</Link>
                     <button type="button" class="text-sm text-muted-foreground" @click="logout">Đăng xuất</button>
                 </div>
             </div>

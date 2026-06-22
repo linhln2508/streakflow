@@ -2,6 +2,7 @@
 import { computed } from 'vue';
 import {
     AlertCircle,
+    BookOpen,
     Briefcase,
     CalendarCheck,
     Check,
@@ -37,6 +38,7 @@ import {
 
 const iconMap = {
     AlertCircle,
+    BookOpen,
     Briefcase,
     CalendarCheck,
     Check,

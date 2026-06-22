@@ -46,6 +46,7 @@ class HandleInertiaRequests extends Middleware
                     'streak_count' => $user->streak_count,
                     'shield_count' => $user->shield_count,
                     'debt_count' => $user->debt_count,
+                    'debt_count' => $user->debt_count,
                 ] : null,
             ],
             'flash' => [

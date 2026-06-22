@@ -38,6 +38,6 @@ const submit = async () => {
 
     <form @submit.prevent="submit" class="space-y-4">
         <Field ref="passwordField" v-model="form.password" :field="{ label: 'Mật khẩu', type: 'Password', validate: 'required' }" />
-        <Button type="submit" :disabled="processing" class="w-full">Xác nhận</Button>
+        <Button type="submit" variant="emphasis" size="block" :disabled="processing">Xác nhận</Button>
     </form>
 </template>

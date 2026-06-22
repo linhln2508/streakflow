@@ -140,7 +140,8 @@ class GamificationService
         int $streakBefore,
         int $shieldCount,
         int $debtCount,
-        float $pctCompleted
+        float $pctCompleted,
+        ?string $strategy = null,
     ): array {
         $result = [
             'streak_after' => $streakBefore,
@@ -169,32 +170,150 @@ class GamificationService
             return $result;
         }
 
-        if ($shieldCount > 0) {
+        if ($strategy === 'reset') {
+            return $this->applyStreakReset($result, $streakBefore, $debtCount);
+        }
+
+        if ($strategy === 'shield' && $shieldCount > 0) {
             $result['shield_count']--;
             $result['shield_used'] = true;
 
             return $result;
         }
 
-        if ($streakBefore >= 30) {
-            if ($debtCount > 0) {
-                $result['streak_after'] = 0;
-                $result['debt_count'] = 0;
-                $result['streak_reset'] = true;
-
-                return $result;
-            }
-
+        if ($strategy === 'debt' && $streakBefore >= 30 && $debtCount === 0) {
             $result['debt_count'] = 1;
             $result['debt_added'] = true;
 
             return $result;
         }
 
+        if ($strategy === null || $strategy === 'auto') {
+            if ($shieldCount > 0) {
+                $result['shield_count']--;
+                $result['shield_used'] = true;
+
+                return $result;
+            }
+
+            if ($streakBefore >= 30) {
+                if ($debtCount > 0) {
+                    return $this->applyStreakReset($result, $streakBefore, $debtCount);
+                }
+
+                $result['debt_count'] = 1;
+                $result['debt_added'] = true;
+
+                return $result;
+            }
+
+            return $this->applyStreakReset($result, $streakBefore, $debtCount);
+        }
+
+        return $this->applyStreakReset($result, $streakBefore, $debtCount);
+    }
+
+    protected function applyStreakReset(array $result, int $streakBefore, int $debtCount): array
+    {
         $result['streak_after'] = 0;
         $result['streak_reset'] = true;
 
+        if ($debtCount > 0) {
+            $result['debt_count'] = 0;
+        }
+
         return $result;
+    }
+
+    public function previewCloseDay(
+        int $streakBefore,
+        int $shieldCount,
+        int $debtCount,
+        int $total,
+        int $done,
+        int $skipped,
+        int $pending,
+    ): array {
+        $skippedAuto = $pending;
+        $pctCompleted = $this->calculateCompletionPercent($done, $total);
+        $hpChange = $this->calculateHpChange($total, $skipped, $skippedAuto)['hp_change'];
+
+        if ($total === 0) {
+            return [
+                'pct_completed' => 0,
+                'hp_change' => 0,
+                'needs_streak_choice' => false,
+                'default_strategy' => null,
+                'outcomes' => [],
+            ];
+        }
+
+        if ($pctCompleted >= 75) {
+            $outcome = $this->processStreak($streakBefore, $shieldCount, $debtCount, $pctCompleted);
+
+            return [
+                'pct_completed' => $pctCompleted,
+                'hp_change' => $hpChange,
+                'needs_streak_choice' => false,
+                'default_strategy' => null,
+                'outcomes' => [
+                    'success' => $this->formatStreakOutcome($outcome, $streakBefore),
+                ],
+            ];
+        }
+
+        $outcomes = [];
+
+        if ($shieldCount > 0) {
+            $outcomes['shield'] = $this->formatStreakOutcome(
+                $this->processStreak($streakBefore, $shieldCount, $debtCount, $pctCompleted, 'shield'),
+                $streakBefore,
+            );
+        }
+
+        if ($streakBefore >= 30 && $debtCount === 0) {
+            $outcomes['debt'] = $this->formatStreakOutcome(
+                $this->processStreak($streakBefore, $shieldCount, $debtCount, $pctCompleted, 'debt'),
+                $streakBefore,
+            );
+        }
+
+        $outcomes['reset'] = $this->formatStreakOutcome(
+            $this->processStreak($streakBefore, $shieldCount, $debtCount, $pctCompleted, 'reset'),
+            $streakBefore,
+        );
+
+        $defaultStrategy = match (true) {
+            $shieldCount > 0 => 'shield',
+            $streakBefore >= 30 && $debtCount === 0 => 'debt',
+            default => 'reset',
+        };
+
+        return [
+            'pct_completed' => $pctCompleted,
+            'hp_change' => $hpChange,
+            'needs_streak_choice' => true,
+            'default_strategy' => $defaultStrategy,
+            'shield_count' => $shieldCount,
+            'debt_count' => $debtCount,
+            'streak_before' => $streakBefore,
+            'outcomes' => $outcomes,
+        ];
+    }
+
+    protected function formatStreakOutcome(array $result, int $streakBefore): array
+    {
+        return [
+            'streak_before' => $streakBefore,
+            'streak_after' => $result['streak_after'],
+            'shield_used' => $result['shield_used'],
+            'shield_earned' => $result['shield_earned'],
+            'debt_added' => $result['debt_added'],
+            'debt_cleared' => $result['debt_cleared'],
+            'streak_reset' => $result['streak_reset'],
+            'shield_count_after' => $result['shield_count'],
+            'debt_count_after' => $result['debt_count'],
+        ];
     }
 
     public function predictHpChange(int $totalTasks, int $done, int $skipped, int $pending): int

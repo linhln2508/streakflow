@@ -60,8 +60,10 @@ const submit = async () => {
 
         <Button
             type="submit"
+            variant="emphasis"
+            size="block"
+            class="mt-2"
             :disabled="processing"
-            class="mt-2 h-11 w-full gap-2 rounded-xl bg-primary font-semibold text-primary-foreground shadow-md shadow-primary/25 hover:bg-primary/90"
         >
             <DynamicIcon name="LogIn" size="16" />
             {{ processing ? 'Đang đăng nhập...' : 'Đăng nhập' }}
