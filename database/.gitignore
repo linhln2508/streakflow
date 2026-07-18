@@ -1,1 +1,6 @@
-*.sqlite*
+# Keep the main SQLite DB in git as a backup snapshot.
+# Ignore SQLite sidecar/temp files only.
+*.sqlite-journal
+*.sqlite-wal
+*.sqlite-shm
+*.sqlitedb-journal
