@@ -34,7 +34,7 @@ defineProps({
             <div class="rounded-xl border border-amber-100 bg-white/80 px-3 py-2.5">
                 <p class="text-[11px] uppercase tracking-wide text-muted-foreground">Nợ shield</p>
                 <p class="text-xl font-bold" :class="debtCount > 0 ? 'text-amber-700' : 'text-foreground'">{{ debtCount }}</p>
-                <p class="text-[11px] text-muted-foreground">Ứng trước (streak ≥30)</p>
+                <p class="text-[11px] text-muted-foreground">Ứng trước (chưa nợ)</p>
             </div>
             <div class="col-span-2 rounded-xl border border-orange-100 bg-white/80 px-3 py-2.5 sm:col-span-1">
                 <p class="text-[11px] uppercase tracking-wide text-muted-foreground">Streak</p>
@@ -45,7 +45,7 @@ defineProps({
 
         <ul class="mt-4 space-y-1.5 text-xs text-sky-900/75">
             <li>• <strong>Shield:</strong> trừ 1 shield, giữ streak.</li>
-            <li>• <strong>Ứng trước:</strong> giữ streak lần này, ghi 1 nợ (chỉ khi streak ≥30 và chưa nợ).</li>
+            <li>• <strong>Ứng trước:</strong> giữ streak lần này, ghi 1 nợ (chỉ khi chưa nợ).</li>
             <li>• Lần chốt tiếp theo &lt;75% mà có nợ → mất streak.</li>
         </ul>
     </div>

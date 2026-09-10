@@ -109,7 +109,7 @@ lang/vi/categories.php | tasks.php | today.php   → i18n BE (không dùng ui.ph
 - **HP (0–100):** Tính từ skip quota (25% tổng task). Skip thừa = -HP, skip dư = +HP
 - **XP:** Base XP × performance multiplier × streak bonus. Không bao giờ bị trừ
 - **Level:** XP cần từ level N → N+1 = `100 × N² + 50 × N`
-- **Streak:** ≥75% = +1 streak. 100% = +1 shield. <75% = dùng shield hoặc debt (streak ≥30)
+- **Streak:** ≥75% = +1 streak. 100% = +1 shield. <75% = dùng shield hoặc ứng trước (chưa nợ)
 
 ## Routes chính
 

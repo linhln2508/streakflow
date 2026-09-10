@@ -56,11 +56,11 @@ import { Head, Link } from '@inertiajs/vue3';
                 </p>
                 <ul class="space-y-2 pl-4">
                     <li>• <strong>Dùng Shield</strong> — trừ 1 shield, giữ streak.</li>
-                    <li>• <strong>Ứng trước (nợ shield)</strong> — chỉ khi streak ≥30 và chưa có nợ: giữ streak lần này nhưng ghi 1 nợ. Lần sau &lt;75% mà không có shield → mất streak.</li>
+                    <li>• <strong>Ứng trước (nợ shield)</strong> — chỉ khi chưa có nợ: giữ streak lần này nhưng ghi 1 nợ. Lần sau &lt;75% mà không có shield → mất streak.</li>
                     <li>• <strong>Chấp nhận mất streak</strong> — streak về 0.</li>
                 </ul>
                 <p>
-                    Nếu streak &lt;30 và không có shield: chỉ có thể chấp nhận mất streak.
+                    Nếu đang có nợ và không có shield: chỉ có thể chấp nhận mất streak.
                 </p>
             </div>
         </PageSection>

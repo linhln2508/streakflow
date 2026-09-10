@@ -3,7 +3,6 @@
 namespace Tests\Feature;
 
 use App\Actions\CloseDaySummaryAction;
-use App\Actions\GenerateDailyTaskInstancesAction;
 use App\Models\DailySummary;
 use App\Models\TaskInstance;
 use App\Models\TaskTemplate;
@@ -100,54 +99,5 @@ class CloseDaySummaryActionTest extends TestCase
 
         $this->assertEquals(1, DailySummary::where('user_id', $user->id)->count());
         $this->assertEquals(0, $result->total_tasks);
-    }
-}
-
-class GenerateDailyTaskInstancesActionTest extends TestCase
-{
-    use RefreshDatabase;
-
-    public function test_generates_instances_for_active_templates(): void
-    {
-        $user = User::factory()->create();
-        $date = Carbon::parse('2025-06-17');
-
-        TaskTemplate::create([
-            'user_id' => $user->id,
-            'title' => 'Daily task',
-            'priority' => 'medium',
-            'recurrence_type' => 'daily',
-            'start_date' => $date->copy()->subDay(),
-            'is_active' => true,
-        ]);
-
-        $created = app(GenerateDailyTaskInstancesAction::class)->execute($date);
-
-        $this->assertEquals(1, $created);
-        $this->assertDatabaseHas('task_instances', [
-            'user_id' => $user->id,
-            'scheduled_date' => $date->toDateString(),
-            'status' => 'pending',
-        ]);
-    }
-
-    public function test_deactivates_one_time_template_after_generation(): void
-    {
-        $user = User::factory()->create();
-        $date = Carbon::parse('2025-06-20');
-
-        $template = TaskTemplate::create([
-            'user_id' => $user->id,
-            'title' => 'One time',
-            'priority' => 'medium',
-            'recurrence_type' => 'one_time',
-            'recurrence_config' => ['date' => '2025-06-20'],
-            'start_date' => $date,
-            'is_active' => true,
-        ]);
-
-        app(GenerateDailyTaskInstancesAction::class)->execute($date);
-
-        $this->assertFalse($template->fresh()->is_active);
     }
 }

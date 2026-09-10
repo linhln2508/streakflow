@@ -26,7 +26,7 @@ class DashboardController extends Controller
         $today = Carbon::today();
         $todayString = $today->toDateString();
 
-        app(GenerateDailyTaskInstancesAction::class)->execute($today, $user->id);
+        app(GenerateDailyTaskInstancesAction::class)->executeWithBackfill($today, $user->id);
 
         $unclosedDays = $this->unclosedDays->forUser($user->id)->values();
         $selectedDate = $this->resolveSelectedDate($request, $unclosedDays, $today);

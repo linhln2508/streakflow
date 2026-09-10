@@ -181,7 +181,7 @@ class GamificationService
             return $result;
         }
 
-        if ($strategy === 'debt' && $streakBefore >= 30 && $debtCount === 0) {
+        if ($strategy === 'debt' && $debtCount === 0) {
             $result['debt_count'] = 1;
             $result['debt_added'] = true;
 
@@ -196,11 +196,7 @@ class GamificationService
                 return $result;
             }
 
-            if ($streakBefore >= 30) {
-                if ($debtCount > 0) {
-                    return $this->applyStreakReset($result, $streakBefore, $debtCount);
-                }
-
+            if ($debtCount === 0) {
                 $result['debt_count'] = 1;
                 $result['debt_added'] = true;
 
@@ -271,7 +267,7 @@ class GamificationService
             );
         }
 
-        if ($streakBefore >= 30 && $debtCount === 0) {
+        if ($debtCount === 0) {
             $outcomes['debt'] = $this->formatStreakOutcome(
                 $this->processStreak($streakBefore, $shieldCount, $debtCount, $pctCompleted, 'debt'),
                 $streakBefore,
@@ -285,7 +281,7 @@ class GamificationService
 
         $defaultStrategy = match (true) {
             $shieldCount > 0 => 'shield',
-            $streakBefore >= 30 && $debtCount === 0 => 'debt',
+            $debtCount === 0 => 'debt',
             default => 'reset',
         };
 
